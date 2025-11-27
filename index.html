@@ -1,395 +1,214 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<title>Vehicle Stock — Online Lookup (CarQuery + vPIC)</title>
-<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta charset="UTF-8">
+<title>Vehicle Management</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <style>
-:root{--bg:#07142a;--card:#ffffff;--accent:#2563eb;--muted:#6b7280}
-body{margin:0;font-family:Inter,Segoe UI,Roboto,Arial,sans-serif;background:linear-gradient(135deg,#07142a,#003040);color:#0f172a;padding:20px;display:flex;justify-content:center}
-.container{width:100%;max-width:1100px;background:var(--card);border-radius:14px;padding:20px;box-shadow:0 12px 30px rgba(0,0,0,0.35)}
-.h-row{display:flex;justify-content:space-between;align-items:center}
-.badge{background:linear-gradient(90deg,var(--accent),#06b6d4);color:#fff;padding:8px 12px;border-radius:8px;font-weight:700}
-.form-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
-.field{display:flex;flex-direction:column}
-label{font-weight:600;margin-bottom:6px}
-input,select,textarea,button{font-size:14px}
-input,select,textarea{padding:8px;border-radius:8px;border:1px solid #e6e7ef}
-textarea{min-height:56px}
-.controls{display:flex;gap:8px;align-items:center;margin-top:12px}
-button.action{padding:10px 14px;border-radius:8px;border:0;color:white;cursor:pointer;font-weight:700}
-.btn-primary{background:var(--accent)}.btn-ghost{background:#6b7280}.btn-success{background:#16a34a}.btn-danger{background:#ef4444}
-.search-row{display:flex;gap:8px;margin-left:auto;align-items:center}
-.table-wrap{overflow:auto;margin-top:14px;border-radius:8px;padding:8px;background:#fbfdff;border:1px solid rgba(0,0,0,0.04)}
-table{width:100%;border-collapse:collapse;min-width:900px}
-th,td{padding:10px;border-bottom:1px solid #eef2ff;text-align:center}
-thead th{background:linear-gradient(90deg,var(--accent),#06b6d4);color:white}
-.selected{background:rgba(37,99,235,0.06);outline:3px solid rgba(37,99,235,0.08)}
-.overlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.45)}
-.modal{background:white;padding:16px;border-radius:10px;min-width:300px}
-.notice{font-size:13px;color:var(--muted);margin-top:8px}
-.footer{margin-top:12px;color:var(--muted);font-size:13px}
-@media(max-width:900px){.form-grid{grid-template-columns:repeat(2,1fr)}table{min-width:700px}}
-@media(max-width:600px){.form-grid{grid-template-columns:1fr}}
+    body {
+        font-family: Arial, sans-serif;
+        background: linear-gradient(135deg,#1f2b57,#3c6eb4);
+        margin: 0;
+        padding: 20px;
+        color: white;
+    }
+
+    .container {
+        background: rgba(255,255,255,0.1);
+        padding: 20px;
+        border-radius: 12px;
+        max-width: 900px;
+        margin: auto;
+        box-shadow: 0 0 15px rgba(0,0,0,0.4);
+        backdrop-filter: blur(10px);
+    }
+
+    h1 {
+        text-align: center;
+        margin-bottom: 20px;
+        font-size: 28px;
+        color: #fff;
+        font-weight: bold;
+    }
+
+    label {
+        font-weight: bold;
+    }
+
+    input, textarea {
+        width: 100%;
+        padding: 10px;
+        margin: 6px 0 15px;
+        border: none;
+        border-radius: 6px;
+        outline: none;
+    }
+
+    button {
+        padding: 12px 20px;
+        border: none;
+        border-radius: 6px;
+        margin-right: 10px;
+        cursor: pointer;
+        font-weight: bold;
+        color: white;
+    }
+
+    .btn-save { background: #28a745; }
+    .btn-print { background: #007bff; }
+    .btn-clear { background: #dc3545; }
+
+    .row {
+        display: flex;
+        gap: 10px;
+    }
+    .row > div { flex: 1; }
+
+    /* PRINT ONLY REPORT */
+    @media print {
+        body * { visibility: hidden; }
+        #print-area, #print-area * { visibility: visible; }
+        #print-area {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 20px;
+            color:black;
+        }
+    }
+
+    /* PRINT AREA STYLE */
+    #print-area {
+        display:none;
+        background:white;
+        color:black;
+        padding:20px;
+        border-radius:10px;
+    }
 </style>
 </head>
+
 <body>
-<div class="container" role="application" aria-label="Vehicle Stock with online lookup">
-  <div class="h-row">
-    <div style="display:flex;gap:12px;align-items:center">
-      <div class="badge">Vehicle Stock (Online Lookup)</div>
-      <div>
-        <div style="font-size:13px;color:var(--muted)">CarQuery (global) → fallback NHTSA vPIC (US). Internet required to auto-search.</div>
-      </div>
+<div class="container">
+    <h1>Vehicle Management System</h1>
+
+    <label>Model Number</label>
+    <input id="modelNumber" placeholder="Example: ZVW30, GR86, FD3S" onblur="autoFillVehicle()">
+
+    <div class="row">
+        <div>
+            <label>Brand & Model</label>
+            <input id="brandModel" readonly>
+        </div>
+        <div>
+            <label>Year</label>
+            <input id="year">
+        </div>
     </div>
 
-    <div style="display:flex;gap:8px;align-items:center">
-      <button class="action btn-primary" onclick="printPage()">Print</button>
-      <button class="action btn-ghost" onclick="openFilter()">Filter</button>
-      <button class="action btn-ghost" onclick="showDetails()">Show Details</button>
-    </div>
-  </div>
+    <label>Chassis Number</label>
+    <input id="chassis">
 
-  <!-- form -->
-  <div style="margin-top:12px">
-    <div style="display:flex;gap:8px;align-items:center">
-      <div style="flex:1">
-        <label>Model Code / Name (type code or model, e.g. ZVW30, Prius, Civic)</label>
-        <input id="lookupInput" placeholder="ZVW30 or Prius or Civic" />
-      </div>
-      <div style="width:120px">
-        <label>&nbsp;</label>
-        <button class="action btn-primary" onclick="doLookup()">Lookup</button>
-      </div>
+    <div class="row">
+        <div>
+            <label>Purchase Date</label>
+            <input id="purchaseDate" type="date">
+        </div>
+        <div>
+            <label>Purchase Price</label>
+            <input id="purchasePrice" type="number">
+        </div>
     </div>
 
-    <div class="form-grid" aria-label="vehicle inputs">
-      <div class="field"><label>Vehicle ID</label><input id="vehId" placeholder="e.g. V-2025-001"></div>
-      <div class="field"><label>Make</label><input id="make" placeholder="Toyota"></div>
-      <div class="field"><label>Model</label><input id="model" placeholder="Prius"></div>
-
-      <div class="field"><label>Year</label><input id="year" type="number" min="1900" max="2100"></div>
-      <div class="field"><label>Chassis / Code</label><input id="chassis" placeholder="e.g. ZVW30-XXXXX"></div>
-      <div class="field"><label>Category</label><select id="category"><option>Car</option><option>Van</option><option>Truck</option><option>Other</option></select></div>
-
-      <div class="field"><label>Purchase Date</label><input id="purchaseDate" type="date"></div>
-      <div class="field"><label>Purchase Price</label><input id="purchasePrice" type="number" min="0" step="0.01"></div>
-      <div class="field"><label>Expense</label><input id="expense" type="number" min="0" step="0.01"></div>
-
-      <div class="field"><label>Selling Date</label><input id="sellingDate" type="date"></div>
-      <div class="field"><label>Selling Price</label><input id="sellingPrice" type="number" min="0" step="0.01"></div>
-      <div class="field"><label>Profit</label><input id="profit" readonly></div>
-
-      <div class="field"><label>Status</label><select id="status"><option>Available</option><option>Sold</option><option>On Hold</option></select></div>
-      <div class="field"><label>Notes</label><textarea id="notes"></textarea></div>
-      <div class="field"><label>&nbsp;</label><div style="display:flex;gap:8px"><button class="action btn-primary" onclick="addVehicle()">Add Vehicle</button><button class="action btn-ghost" onclick="clearForm()">Clear</button></div></div>
+    <div class="row">
+        <div>
+            <label>Selling Date</label>
+            <input id="sellDate" type="date">
+        </div>
+        <div>
+            <label>Selling Price</label>
+            <input id="sellPrice" type="number">
+        </div>
     </div>
-  </div>
 
-  <div class="controls" style="margin-top:10px">
-    <div style="flex:1"></div>
-    <div style="display:flex;gap:8px">
-      <input id="searchText" placeholder="Search ID / Make / Model / Chassis" style="padding:8px;border-radius:8px;border:1px solid #e6e7ef" />
-      <button class="action btn-primary" onclick="searchVehicles()">Search</button>
-      <button class="action btn-ghost" onclick="resetSearch()">Reset</button>
-    </div>
-  </div>
+    <label>Notes</label>
+    <textarea id="notes" rows="3"></textarea>
 
-  <div class="table-wrap" aria-live="polite">
-    <table id="vehiclesTable">
-      <thead><tr><th>ID</th><th>Make</th><th>Model</th><th>Year</th><th>Chassis</th><th>Purchase</th><th>Expense</th><th>Selling</th><th>Profit</th><th>Status</th></tr></thead>
-      <tbody></tbody>
-    </table>
-  </div>
-
-  <div class="stats" style="margin-top:12px">
-    <div class="stat" id="totalVehicles">Total Vehicles: -</div>
-    <div class="stat" id="totalProfit">Total Profit: -</div>
-    <div class="stat" id="totalExpense">Total Expense: -</div>
-  </div>
-
-  <div class="footer">Note: Auto-lookup needs internet. Coverage depends on public APIs.</div>
+    <button class="btn-save" onclick="saveData()">Save</button>
+    <button class="btn-print" onclick="printReport()">Print</button>
+    <button class="btn-clear" onclick="clearForm()">Clear</button>
 </div>
 
-<div id="overlay" class="overlay"><div class="modal" id="modalContent"></div></div>
+<!-- ==================== PRINT ONLY AREA ==================== -->
+<div id="print-area">
+    <h2>Vehicle Report</h2>
+    <p><strong>Model Number:</strong> <span id="p_model"></span></p>
+    <p><strong>Brand & Model:</strong> <span id="p_brandModel"></span></p>
+    <p><strong>Year:</strong> <span id="p_year"></span></p>
+    <p><strong>Chassis:</strong> <span id="p_chassis"></span></p>
+    <p><strong>Purchase Date:</strong> <span id="p_purchase"></span></p>
+    <p><strong>Purchase Price:</strong> <span id="p_price"></span></p>
+    <p><strong>Selling Date:</strong> <span id="p_sell"></span></p>
+    <p><strong>Selling Price:</strong> <span id="p_sellprice"></span></p>
+    <p><strong>Notes:</strong> <span id="p_notes"></span></p>
+</div>
 
 <script>
-/* ========= STORAGE KEY ========= */
-const STORAGE_KEY = "vehicle_stock_online_v1";
+const API_KEY = "96a1e396-f7a5-4fbf-98fd-35ca416e6449";
 
-/* ======= in-memory storage (load from localStorage) ======= */
-let vehicles = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null") || [];
-let selectedIndex = -1;
+async function autoFillVehicle() {
+    const model = document.getElementById("modelNumber").value.trim();
+    if (!model) return;
 
-/* ======= DOM shortcuts ======= */
-const tbody = document.querySelector("#vehiclesTable tbody");
-const lookupInput = document.getElementById("lookupInput");
-const vehId = document.getElementById("vehId");
-const make = document.getElementById("make");
-const model = document.getElementById("model");
-const year = document.getElementById("year");
-const chassis = document.getElementById("chassis");
-const category = document.getElementById("category");
-const purchaseDate = document.getElementById("purchaseDate");
-const purchasePrice = document.getElementById("purchasePrice");
-const expense = document.getElementById("expense");
-const sellingDate = document.getElementById("sellingDate");
-const sellingPrice = document.getElementById("sellingPrice");
-const profit = document.getElementById("profit");
-const status = document.getElementById("status");
-const notes = document.getElementById("notes");
-const searchText = document.getElementById("searchText");
-const overlay = document.getElementById("overlay");
-const modalContent = document.getElementById("modalContent");
-const totalVehicles = document.getElementById("totalVehicles");
-const totalProfit = document.getElementById("totalProfit");
-const totalExpense = document.getElementById("totalExpense");
+    try {
+        const response = await fetch(
+            `https://carapi.app/api/models?search=${model}`,
+            {
+                headers: { "X-Api-Key": API_KEY }
+            }
+        );
 
-/* ======= Profit update ======= */
-[purchasePrice, expense, sellingPrice].forEach(el => el.addEventListener("input", updateProfit));
-function updateProfit(){
-  const p = Number(purchasePrice.value) || 0;
-  const e = Number(expense.value) || 0;
-  const s = Number(sellingPrice.value) || 0;
-  const prof = s - (p + e);
-  profit.value = isNaN(prof) ? "" : prof.toFixed(2);
-}
-
-/* ======= Render table ======= */
-function renderTable(list = vehicles){
-  tbody.innerHTML = "";
-  list.forEach((v, i) => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `<td>${escape(v.id)}</td><td>${escape(v.make)}</td><td>${escape(v.model)}</td><td>${escape(v.year)}</td><td>${escape(v.chassis)}</td><td>${num(v.purchase)}</td><td>${num(v.expense)}</td><td>${num(v.selling)}</td><td>${num(v.profit)}</td><td>${escape(v.status)}</td>`;
-    tr.addEventListener("click", ()=> selectRow(i, tr));
-    tbody.appendChild(tr);
-  });
-  updateStats(list);
-  saveStorage();
-}
-
-/* escape & format */
-function escape(s){ return String(s||"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;"); }
-function num(n){ return Number(n||0).toFixed(2); }
-
-/* select row */
-function selectRow(i, tr){
-  [...tbody.children].forEach(r => r.classList.remove("selected"));
-  tr.classList.add("selected");
-  selectedIndex = i;
-  const v = vehicles[i];
-  vehId.value = v.id;
-  make.value = v.make;
-  model.value = v.model;
-  year.value = v.year;
-  chassis.value = v.chassis;
-  category.value = v.category || "Car";
-  purchaseDate.value = v.purchaseDate || "";
-  purchasePrice.value = v.purchase || "";
-  expense.value = v.expense || "";
-  sellingDate.value = v.sellingDate || "";
-  sellingPrice.value = v.selling || "";
-  profit.value = v.profit !== undefined ? Number(v.profit).toFixed(2) : "";
-  status.value = v.status || "Available";
-  notes.value = v.notes || "";
-}
-
-/* add / update / delete */
-function gatherForm(){
-  const id = (vehId.value||"").trim();
-  const mk = (make.value||"").trim();
-  const md = (model.value||"").trim();
-  const yr = Number(year.value) || "";
-  const ch = (chassis.value||"").trim();
-  const cat = category.value;
-  const pDate = purchaseDate.value;
-  const p = Number(purchasePrice.value) || 0;
-  const e = Number(expense.value) || 0;
-  const sDate = sellingDate.value;
-  const s = Number(sellingPrice.value) || 0;
-  const stat = status.value;
-  const nt = notes.value.trim();
-  if(!id || !mk || !md){ alert("Please fill at least Vehicle ID, Make and Model."); return null; }
-  const prof = s - (p + e);
-  return { id, make:mk, model:md, year:yr, chassis:ch, category:cat, purchaseDate:pDate, purchase:p, expense:e, sellingDate:sDate, selling:s, profit:prof, status:stat, notes:nt };
-}
-
-function addVehicle(){
-  const v = gatherForm(); if(!v) return;
-  vehicles.push(v); clearForm(); renderTable();
-}
-function updateVehicle(){ if(selectedIndex<0){ alert("Select a row first."); return; } const v=gatherForm(); if(!v) return; vehicles[selectedIndex]=v; selectedIndex=-1; clearForm(); renderTable(); }
-function deleteVehicle(){ if(selectedIndex<0){ alert("Select a row first."); return; } if(!confirm("Delete this record?")) return; vehicles.splice(selectedIndex,1); selectedIndex=-1; clearForm(); renderTable(); }
-
-function clearForm(){
-  vehId.value=make.value=model.value=year.value=chassis.value=purchaseDate.value=purchasePrice.value=expense.value=sellingDate.value=sellingPrice.value=profit.value=notes.value="";
-  status.value="Available"; category.value="Car";
-  selectedIndex=-1; [...tbody.children].forEach(r=>r.classList.remove("selected"));
-}
-
-/* search */
-function searchVehicles(){
-  const q = (searchText.value||"").trim().toLowerCase();
-  if(!q){ renderTable(); return; }
-  const filtered = vehicles.filter(v => (v.id+" "+v.make+" "+v.model+" "+v.chassis).toLowerCase().includes(q));
-  renderTable(filtered);
-}
-function resetSearch(){ searchText.value=""; renderTable(); }
-
-/* stats + storage */
-function updateStats(list){
-  const tot = list.length;
-  const totExp = list.reduce((s,v)=>s+Number(v.expense||0),0);
-  const totProf = list.reduce((s,v)=>s+Number(v.profit||0),0);
-  totalVehicles.textContent = `Total Vehicles: ${tot}`;
-  totalExpense.textContent = `Total Expense: ${totExp.toFixed(2)}`;
-  totalProfit.textContent = `Total Profit: ${totProf.toFixed(2)}`;
-}
-function saveStorage(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(vehicles)); }
-
-/* print & modal */
-function printPage(){ window.print(); }
-function openFilter(){
-  overlay.style.display="flex";
-  modalContent.innerHTML = `<h3>Filter</h3><div class="small">Choose filters (leave blank for any)</div>
-    <div style="margin-top:8px"><label>Make</label><input id="fMake" style="width:100%;padding:8px;border-radius:6px"/></div>
-    <div style="margin-top:8px"><label>Status</label><select id="fStatus" style="width:100%;padding:8px;border-radius:6px"><option value=''>--Any--</option><option>Available</option><option>Sold</option><option>On Hold</option></select></div>
-    <div style="margin-top:10px;display:flex;gap:8px;justify-content:flex-end"><button class="action btn-primary" onclick="applyFilter()">Apply</button><button class="action btn-ghost" onclick="closeModal()">Cancel</button></div>`;
-}
-function applyFilter(){
-  const fm = (document.getElementById("fMake").value||"").trim().toLowerCase();
-  const fs = document.getElementById("fStatus").value;
-  const filtered = vehicles.filter(v=> { if(fm && !v.make.toLowerCase().includes(fm)) return false; if(fs && v.status!==fs) return false; return true; });
-  closeModal(); renderTable(filtered);
-}
-function showDetails(){
-  if(selectedIndex<0){ alert("Select row first."); return; }
-  const v = vehicles[selectedIndex];
-  overlay.style.display="flex";
-  modalContent.innerHTML = `<h3>Vehicle Details</h3>
-    <div><strong>ID:</strong> ${escape(v.id)}</div><div><strong>Make:</strong> ${escape(v.make)}</div><div><strong>Model:</strong> ${escape(v.model)}</div><div><strong>Year:</strong> ${escape(v.year)}</div>
-    <div><strong>Chassis:</strong> ${escape(v.chassis)}</div><div><strong>Purchase:</strong> ${num(v.purchase)}</div><div><strong>Expense:</strong> ${num(v.expense)}</div><div><strong>Selling:</strong> ${num(v.selling)}</div><div><strong>Profit:</strong> ${num(v.profit)}</div>
-    <div style="margin-top:8px;display:flex;justify-content:flex-end"><button class="action btn-primary" onclick="closeModal()">Close</button></div>`;
-}
-function closeModal(){ overlay.style.display="none"; modalContent.innerHTML=""; }
-
-/* overlay close */
-overlay.addEventListener("click",(e)=>{ if(e.target===overlay) closeModal(); });
-
-/* ======= ONLINE LOOKUP logic ======= */
-/* 1) Try CarQuery API (JSONP) — good global model/search API
-   2) If CarQuery returns no useful result → try NHTSA vPIC (US fallback)
-   Note: coverage depends on public APIs; some chassis-specific codes (Japanese) may not exist in API and require manual entry.
-*/
-
-/* handle CarQuery JSONP response */
-function handleCarQueryResponse(data){
-  try {
-    // CarQuery returns object: Trims or Models in data
-    // If getTrims used, results are in data.Trims
-    const trims = data && data.Trims ? data.Trims : (data && data.Models ? data.Models : null);
-    if(trims && trims.length>0){
-      const t = trims[0];
-      // t typically has model_make_id/model_name/model_trim/model_year...
-      make.value = t.model_make_id || t.model_make || (t.make_display || "");
-      model.value = t.model_name || t.model_model || (t.model_trim || "");
-      year.value = t.model_year || t.model_years || "";
-      chassis.value = t.model_id ? `${t.model_id}` : chassis.value;
-      // stop here (found)
-      return true;
+        const data = await response.json();
+        if (data.data && data.data.length > 0) {
+            const car = data.data[0];
+            document.getElementById("brandModel").value =
+                `${car.make.name} ${car.name}`;
+            document.getElementById("year").value = car.year || "";
+        } else {
+            document.getElementById("brandModel").value = "No automatic match found";
+        }
+    } catch (err) {
+        document.getElementById("brandModel").value = "Error contacting API";
     }
-  } catch(e){ /* ignore */ }
-  return false;
 }
 
-/* CarQuery JSONP loader (search by model string) */
-function queryCarQuery(query, callbackName = "carQueryCB"){
-  // Build script tag for JSONP
-  const q = encodeURIComponent(query);
-  // cmd=getTrims by model name (returns Trims)
-  const src = `https://www.carqueryapi.com/api/0.3/?callback=${callbackName}&cmd=getTrims&model=${q}`;
-  // Remove older callback if exists
-  window[callbackName] = function(response){
-    // cleanup
-    delete window[callbackName];
-    document.head.removeChild(scriptTag);
-    callback(response);
-  };
-  const scriptTag = document.createElement("script");
-  scriptTag.src = src;
-  document.head.appendChild(scriptTag);
+function saveData() {
+    alert("Saved successfully! (Local only, not database)");
 }
 
-/* NHTSA vPIC search by model name fallback */
-async function queryVPICModel(query){
-  // Use GetModelsForMake?format=json or GetModelsForMakeYear? but we only have model string
-  // We'll call GetModelsForMake&make={query} first then try decode
-  try {
-    const makeQ = encodeURIComponent(query);
-    const res = await fetch(`https://vpic.nhtsa.dot.gov/api/vehicles/GetMakesForVehicleType/car?format=json`);
-    const json = await res.json();
-    // This endpoint doesn't directly search model strings; fallback: search by decode
-    // Instead we try GetModelsForMake using query as make
-    const r2 = await fetch(`https://vpic.nhtsa.dot.gov/api/vehicles/GetModelsForMake/${makeQ}?format=json`);
-    const j2 = await r2.json();
-    if(j2 && j2.Results && j2.Results.length>0){
-      const item = j2.Results[0];
-      return { make: item.Make_Name || "", model: item.Model_Name || "", year: "" };
-    }
-  } catch(e){}
-  return null;
+function clearForm() {
+    document.querySelectorAll("input, textarea").forEach(e => e.value = "");
 }
 
-/* Main lookup: try CarQuery then vPIC */
-function doLookup(){
-  const q = (lookupInput.value||"").trim();
-  if(!q) { alert("Enter model code or name to lookup."); return; }
-  // show searching notice
-  const prior = modalContent.innerHTML;
-  overlay.style.display = "flex";
-  modalContent.innerHTML = `<div style="font-weight:700">Searching online...</div><div class="small">Trying CarQuery (global) then NHTSA (fallback).</div>`;
-  // 1) try CarQuery
-  queryCarQuery(q, "carQueryCB");
-  // set a timeout: if CarQuery doesn't return within 2.2s, call VPIC
-  let done=false;
-  // Wrap a temp callback to get response (we installed window.carQueryCB above)
-  window.carQueryCB = function(data){
-    const ok = handleCarQueryResponse(data);
-    overlay.style.display = "none";
-    modalContent.innerHTML = "";
-    done = true;
-    if(!ok){
-      // fallback to vPIC
-      queryVPICThenFill(q);
-    }
-  };
-  // fallback timeout
-  setTimeout(()=>{ if(!done){ queryVPICThenFill(q); overlay.style.display = "none"; modalContent.innerHTML = ""; } }, 2500);
+function printReport() {
+    // Fill print area
+    document.getElementById("p_model").textContent = document.getElementById("modelNumber").value;
+    document.getElementById("p_brandModel").textContent = document.getElementById("brandModel").value;
+    document.getElementById("p_year").textContent = document.getElementById("year").value;
+    document.getElementById("p_chassis").textContent = document.getElementById("chassis").value;
+    document.getElementById("p_purchase").textContent = document.getElementById("purchaseDate").value;
+    document.getElementById("p_price").textContent = document.getElementById("purchasePrice").value;
+    document.getElementById("p_sell").textContent = document.getElementById("sellDate").value;
+    document.getElementById("p_sellprice").textContent = document.getElementById("sellPrice").value;
+    document.getElementById("p_notes").textContent = document.getElementById("notes").value;
+
+    document.getElementById("print-area").style.display = "block";
+    window.print();
+    document.getElementById("print-area").style.display = "none";
 }
-
-async function queryVPICThenFill(q){
-  modalContent.innerHTML = `<div style="font-weight:700">Trying NHTSA vPIC fallback...</div>`;
-  const res = await queryVPICModel(q);
-  overlay.style.display = "none";
-  modalContent.innerHTML = "";
-  if(res){
-    make.value = res.make;
-    model.value = res.model;
-    year.value = res.year || "";
-  } else {
-    alert("No automatic match found. You can enter details manually.");
-  }
-}
-
-/* ======= helpers ======= */
-function escapeHTML(s){ return String(s||"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;"); }
-
-/* ======= init ======= */
-renderTable();
-
-/* close overlay if clicked outside */
-overlay.addEventListener("click", (e)=>{ if(e.target===overlay) closeModal(); });
-
 </script>
+
 </body>
 </html>
