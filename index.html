@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Vehicle Stock & Business Management</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<style>
+:root{
+  --card-bg: rgba(255,255,255,0.98);
+  --accent:#2563eb;
+  --accent2:#06b6d4;
+  --muted:#6b7280;
+}
+html,body{height:100%;margin:0;font-family:Inter,Segoe UI,Roboto,Arial,sans-serif;}
+body{
+  background:
+    radial-gradient(circle at 10% 10%, rgba(37,99,235,0.08), transparent 10%),
+    linear-gradient(135deg,#04102a 0%, #062745 50%, #003040 100%);
+  display:flex; align-items:center; justify-content:center; padding:28px;
+}
+.container{
+  width:100%; max-width:1100px;
+  background:var(--card-bg); border-radius:14px; padding:20px 22px;
+  box-shadow:0 12px 30px rgba(2,6,23,0.45); border:1px solid rgba(255,255,255,0.04);
+}
+.h-row{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}
+.badge{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:8px 12px;border-radius:10px;font-weight:700}
+.subtitle{color:var(--muted);font-size:13px}
+.form-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:10px}
+.field{display:flex;flex-direction:column}
+label{font-weight:600;margin-bottom:6px;color:#0f172a}
+input[type="text"], input[type="date"], input[type="number"], select, textarea{
+  padding:10px;border-radius:8px;border:1px solid #e6e7ef;font-size:14px;background:#fff;outline:none;
+}
+textarea{min-height:56px;resize:vertical}
+.controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+button.action{padding:10px 14px;border-radius:10px;border:0;color:#fff;cursor:pointer;font-weight:700;box-shadow:0 8px 18px rgba(2,6,23,0.12)}
+.btn-primary{background:var(--accent)}
+.btn-ghost{background:#6b7280}
+.btn-success{background:#16a34a}
+.btn-danger{background:#ef4444}
+.btn-info{background:#0ea5a4}
+.search-row{display:flex;gap:8px;margin-left:auto;align-items:center}
+.table-wrap{overflow:auto;border-radius:10px;margin-top:8px;background:linear-gradient(#fff,#fbfdff);padding:8px;border:1px solid rgba(3,7,18,0.04)}
+table{width:100%;border-collapse:collapse;min-width:900px}
+th,td{padding:10px 12px;text-align:center;border-bottom:1px solid #eef2ff}
+thead th{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;font-weight:700;border-bottom:2px solid rgba(0,0,0,0.06)}
+tbody tr:hover{background:rgba(15,23,42,0.02);cursor:pointer}
+.selected{outline:3px solid rgba(37,99,235,0.15);background:rgba(37,99,235,0.03) !important}
+.stats{display:flex;gap:14px;margin-top:12px;align-items:center;color:#0f172a;font-weight:700}
+.stat{background:#fff;padding:10px 12px;border-radius:10px;box-shadow:0 6px 18px rgba(2,6,23,0.04);border:1px solid rgba(2,6,23,0.02)}
+.overlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(2,6,23,0.45);z-index:80}
+.modal{background:#fff;padding:18px;width:360px;border-radius:12px;box-shadow:0 15px 40px rgba(2,6,23,0.4)}
+.small{font-size:13px;color:var(--muted);margin-bottom:8px}
+.footer-note{margin-top:12px;color:var(--muted);font-size:13px}
+@media (max-width:1000px){.form-grid{grid-template-columns:repeat(2,1fr)}table{min-width:800px}}
+@media (max-width:700px){.form-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="container" role="application" aria-label="Vehicle stock management">
+  <div class="h-row">
+    <div style="display:flex;gap:12px;align-items:center">
+      <div class="badge">Vehicle Stock</div>
+      <div>
+        <div class="subtitle">Vehicle Business & Stock Management</div>
+        <div style="font-size:12px;color:var(--muted)">Auto-calc profit, search, filter, export & print</div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:8px;align-items:center">
+      <button class="action btn-primary" onclick="printPage()">Print</button>
+      <button class="action btn-info" onclick="openFilter()">Filter</button>
+      <button class="action btn-ghost" onclick="showDetails()">Show Details</button>
+    </div>
+  </div>
+
+  <!-- Form -->
+  <div class="form-grid" role="group" aria-label="vehicle inputs">
+    <div class="field">
+      <label for="vehId">Vehicle ID</label>
+      <input id="vehId" type="text" placeholder="e.g. V-2025-001">
+    </div>
+
+    <div class="field">
+      <label for="make">Make</label>
+      <input id="make" type="text" placeholder="e.g. Toyota">
+    </div>
+
+    <div class="field">
+      <label for="model">Model</label>
+      <input id="model" type="text" placeholder="e.g. Hiace">
+    </div>
+
+    <div class="field">
+      <label for="year">Year</label>
+      <input id="year" type="number" min="1900" max="2100" placeholder="e.g. 2020">
+    </div>
+
+    <div class="field">
+      <label for="chassis">Chassis No</label>
+      <input id="chassis" type="text" placeholder="Chassis number">
+    </div>
+
+    <div class="field">
+      <label for="purchaseDate">Purchase Date</label>
+      <input id="purchaseDate" type="date">
+    </div>
+
+    <div class="field">
+      <label for="purchasePrice">Purchase Price</label>
+      <input id="purchasePrice" type="number" min="0" step="0.01" placeholder="0.00">
+    </div>
+
+    <div class="field">
+      <label for="expense">Expense (repairs, fees)</label>
+      <input id="expense" type="number" min="0" step="0.01" placeholder="0.00">
+    </div>
+
+    <div class="field">
+      <label for="sellingPrice">Selling Price</label>
+      <input id="sellingPrice" type="number" min="0" step="0.01" placeholder="0.00">
+    </div>
+
+    <div class="field">
+      <label for="profit">Profit (auto)</label>
+      <input id="profit" type="text" readonly placeholder="Auto-calculated">
+    </div>
+
+    <div class="field">
+      <label for="status">Status</label>
+      <select id="status">
+        <option>Available</option>
+        <option>Sold</option>
+        <option>On Hold</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="notes">Notes</label>
+      <textarea id="notes" placeholder="Optional notes"></textarea>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="controls" role="group" aria-label="actions">
+    <button class="action btn-primary" onclick="addVehicle()">Add Vehicle</button>
+    <button class="action btn-ghost" onclick="clearForm()">Clear</button>
+    <button class="action btn-success" onclick="updateVehicle()">Update</button>
+    <button class="action btn-danger" onclick="deleteVehicle()">Delete</button>
+
+    <div style="flex:1"></div>
+
+    <div class="search-row">
+      <input id="searchText" type="text" placeholder="Search by ID, Make, Model, Chassis..." />
+      <button class="action btn-primary" onclick="searchVehicles()">Search</button>
+      <button class="action btn-ghost" onclick="resetSearch()">Reset</button>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="table-wrap" aria-live="polite">
+    <table id="vehiclesTable" role="grid" aria-label="vehicle table">
+      <thead>
+        <tr>
+          <th>ID</th><th>Make</th><th>Model</th><th>Year</th><th>Chassis</th><th>Purchase</th><th>Expense</th><th>Selling</th><th>Profit</th><th>Status</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <div class="stats">
+    <div class="stat" id="totalVehicles">Total Vehicles: -</div>
+    <div class="stat" id="totalProfit">Total Profit: -</div>
+    <div class="stat" id="totalExpense">Total Expense: -</div>
+  </div>
+
+  <div class="footer-note">Data is stored locally on this device. To sync across devices, ask me to add Firebase or a server.</div>
+</div>
+
+<!-- overlay modal -->
+<div id="overlay" class="overlay" role="dialog" aria-modal="true">
+  <div class="modal" id="modalContent" role="document"></div>
+</div>
+
+<script>
+/* ====== Data storage: localStorage key ====== */
+const STORAGE_KEY = "vehicle_stock_records_v1";
+
+/* ====== sample initial data (if none in storage) ====== */
+let vehicles = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null") || [
+  { id:"V001", make:"Toyota", model:"Hiace", year:2018, chassis:"CHS001", purchaseDate:"2019-02-15", purchase:2000000, expense:150000, selling:2500000, profit: (2500000-(2000000+150000)), status:"Available", notes:"Good condition" },
+  { id:"V002", make:"Nissan", model:"Caravan", year:2016, chassis:"CHS002", purchaseDate:"2017-06-10", purchase:1800000, expense:100000, selling:2200000, profit: (2200000-(1800000+100000)), status:"Sold", notes:"Sold last month" }
+];
+
+let selectedIndex = -1;
+
+/* DOM */
+const tbody = document.querySelector("#vehiclesTable tbody");
+const vehId = document.getElementById("vehId");
+const make = document.getElementById("make");
+const model = document.getElementById("model");
+const year = document.getElementById("year");
+const chassis = document.getElementById("chassis");
+const purchaseDate = document.getElementById("purchaseDate");
+const purchasePrice = document.getElementById("purchasePrice");
+const expense = document.getElementById("expense");
+const sellingPrice = document.getElementById("sellingPrice");
+const profit = document.getElementById("profit");
+const status = document.getElementById("status");
+const notes = document.getElementById("notes");
+const totalVehicles = document.getElementById("totalVehicles");
+const totalProfit = document.getElementById("totalProfit");
+const totalExpense = document.getElementById("totalExpense");
+const overlay = document.getElementById("overlay");
+const modalContent = document.getElementById("modalContent");
+const searchText = document.getElementById("searchText");
+
+/* sync profit when inputs change */
+[purchasePrice, expense, sellingPrice].forEach(el => el.addEventListener("input", updateProfitField));
+function updateProfitField(){
+  const p = Number(purchasePrice.value) || 0;
+  const e = Number(expense.value) || 0;
+  const s = Number(sellingPrice.value) || 0;
+  const prof = s - (p + e);
+  profit.value = isNaN(prof) ? "" : prof.toFixed(2);
+}
+
+/* render table */
+function renderTable(list = vehicles){
+  tbody.innerHTML = "";
+  list.forEach((v, idx) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${escapeHTML(v.id)}</td>
+      <td>${escapeHTML(v.make)}</td>
+      <td>${escapeHTML(v.model)}</td>
+      <td>${escapeHTML(String(v.year))}</td>
+      <td>${escapeHTML(v.chassis)}</td>
+      <td>${escapeHTML(Number(v.purchase).toFixed(2))}</td>
+      <td>${escapeHTML(Number(v.expense).toFixed(2))}</td>
+      <td>${escapeHTML(Number(v.selling).toFixed(2))}</td>
+      <td>${escapeHTML(Number(v.profit).toFixed(2))}</td>
+      <td>${escapeHTML(v.status)}</td>
+    `;
+    tr.addEventListener("click", ()=> selectRow(idx, tr));
+    tbody.appendChild(tr);
+  });
+  updateStats(list);
+  saveStorage();
+}
+
+/* escape HTML */
+function escapeHTML(s){ return String(s).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;"); }
+
+/* select row */
+function selectRow(idx, trElem){
+  [...tbody.children].forEach(tr=>tr.classList.remove("selected"));
+  trElem.classList.add("selected");
+  selectedIndex = idx;
+  const v = vehicles[idx];
+  vehId.value = v.id;
+  make.value = v.make;
+  model.value = v.model;
+  year.value = v.year;
+  chassis.value = v.chassis;
+  purchaseDate.value = v.purchaseDate;
+  purchasePrice.value = v.purchase;
+  expense.value = v.expense;
+  sellingPrice.value = v.selling;
+  profit.value = Number(v.profit).toFixed(2);
+  status.value = v.status;
+  notes.value = v.notes || "";
+}
+
+/* add vehicle */
+function addVehicle(){
+  const v = gatherForm();
+  if(!v) return;
+  vehicles.push(v);
+  clearForm();
+  renderTable();
+}
+
+/* update vehicle */
+function updateVehicle(){
+  if(selectedIndex < 0 || selectedIndex >= vehicles.length){ alert("Select a record to update."); return; }
+  const v = gatherForm();
+  if(!v) return;
+  vehicles[selectedIndex] = v;
+  selectedIndex = -1;
+  clearForm();
+  renderTable();
+}
+
+/* delete */
+function deleteVehicle(){
+  if(selectedIndex < 0 || selectedIndex >= vehicles.length){ alert("Select a record to delete."); return; }
+  if(!confirm("Delete this vehicle?")) return;
+  vehicles.splice(selectedIndex,1);
+  selectedIndex = -1;
+  clearForm();
+  renderTable();
+}
+
+/* gather & validate form values */
+function gatherForm(){
+  const idVal = vehId.value.trim();
+  const makeVal = make.value.trim();
+  const modelVal = model.value.trim();
+  const yearVal = Number(year.value) || 0;
+  const chassisVal = chassis.value.trim();
+  const pDate = purchaseDate.value;
+  const pPrice = Number(purchasePrice.value);
+  const expVal = Number(expense.value) || 0;
+  const sellVal = Number(sellingPrice.value);
+  const stat = status.value;
+  const notesVal = notes.value.trim();
+
+  if(!idVal || !makeVal || !modelVal || !pDate || isNaN(pPrice) || isNaN(sellVal)){
+    alert("Please fill ID, Make, Model, Purchase Date, Purchase Price and Selling Price.");
+    return null;
+  }
+  const prof = sellVal - (pPrice + expVal);
+  return { id:idVal, make:makeVal, model:modelVal, year:yearVal, chassis:chassisVal, purchaseDate:pDate, purchase:pPrice, expense:expVal, selling:sellVal, profit:prof, status:stat, notes:notesVal };
+}
+
+/* clear form */
+function clearForm(){
+  vehId.value = make.value = model.value = year.value = chassis.value = purchaseDate.value = "";
+  purchasePrice.value = expense.value = sellingPrice.value = profit.value = status.value = notes.value = "";
+  selectedIndex = -1;
+  [...tbody.children].forEach(tr=>tr.classList.remove("selected"));
+}
+
+/* search */
+function searchVehicles(){
+  const q = searchText.value.trim().toLowerCase();
+  if(!q){ renderTable(); return; }
+  const res = vehicles.filter(v => (v.id + " " + v.make + " " + v.model + " " + v.chassis).toLowerCase().includes(q));
+  renderTable(res);
+}
+function resetSearch(){ searchText.value=""; renderTable(); }
+
+/* stats */
+function updateStats(list){
+  const total = list.length;
+  const totalExp = list.reduce((s,v)=>s + Number(v.expense), 0);
+  const totalProf = list.reduce((s,v)=>s + Number(v.profit), 0);
+  totalVehicles.textContent = `Total Vehicles: ${total}`;
+  totalExpense.textContent = `Total Expense: ${totalExp.toFixed(2)}`;
+  totalProfit.textContent = `Total Profit: ${totalProf.toFixed(2)}`;
+}
+
+/* filter modal */
+function openFilter(){
+  overlay.style.display = "flex";
+  modalContent.innerHTML = `
+    <h3>Filter</h3>
+    <div class="small">Choose filters (leave blank for any)</div>
+    <div class="row" style="margin-bottom:8px">
+      <label style="font-weight:600;margin-bottom:6px">Status</label>
+      <select id="fStatus" style="width:100%;padding:8px;border-radius:6px;margin-bottom:8px"><option value="">--Any--</option><option>Available</option><option>Sold</option><option>On Hold</option></select>
+    </div>
+    <div class="row" style="margin-bottom:8px">
+      <label style="font-weight:600;margin-bottom:6px">Make</label>
+      <input id="fMake" type="text" placeholder="e.g. Toyota" style="width:100%;padding:8px;border-radius:6px"/>
+    </div>
+    <div class="row" style="margin-bottom:8px">
+      <label style="font-weight:600;margin-bottom:6px">Year</label>
+      <input id="fYear" type="number" placeholder="e.g. 2020" style="width:100%;padding:8px;border-radius:6px"/>
+    </div>
+    <div class="row" style="margin-bottom:8px">
+      <label style="font-weight:600;margin-bottom:6px">Price between</label>
+      <div style="display:flex;gap:6px">
+        <input id="fMin" type="number" placeholder="min" style="flex:1;padding:8px;border-radius:6px"/>
+        <input id="fMax" type="number" placeholder="max" style="flex:1;padding:8px;border-radius:6px"/>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="action btn-success" onclick="applyFilter()">Apply</button>
+      <button class="action btn-ghost" onclick="closeModal()">Cancel</button>
+    </div>
+  `;
+}
+
+/* apply filter */
+function applyFilter(){
+  const s = document.getElementById("fStatus").value;
+  const fm = document.getElementById("fMake").value.trim().toLowerCase();
+  const fy = document.getElementById("fYear").value;
+  const mn = document.getElementById("fMin").value;
+  const mx = document.getElementById("fMax").value;
+  const filtered = vehicles.filter(v=>{
+    if(s && v.status !== s) return false;
+    if(fm && !v.make.toLowerCase().includes(fm)) return false;
+    if(fy && Number(v.year) !== Number(fy)) return false;
+    if(mn && Number(v.selling) < Number(mn)) return false;
+    if(mx && Number(v.selling) > Number(mx)) return false;
+    return true;
+  });
+  closeModal();
+  renderTable(filtered);
+}
+
+/* show details */
+function showDetails(){
+  if(selectedIndex < 0 || selectedIndex >= vehicles.length){ alert("Select a vehicle row first."); return; }
+  const v = vehicles[selectedIndex];
+  overlay.style.display = "flex";
+  modalContent.innerHTML = `
+    <h3>Vehicle Details</h3>
+    <div style="margin-bottom:8px"><strong>ID:</strong> ${escapeHTML(v.id)}</div>
+    <div style="margin-bottom:8px"><strong>Make:</strong> ${escapeHTML(v.make)}</div>
+    <div style="margin-bottom:8px"><strong>Model:</strong> ${escapeHTML(v.model)}</div>
+    <div style="margin-bottom:8px"><strong>Year:</strong> ${escapeHTML(String(v.year))}</div>
+    <div style="margin-bottom:8px"><strong>Chassis:</strong> ${escapeHTML(v.chassis)}</div>
+    <div style="margin-bottom:8px"><strong>Purchase Date:</strong> ${escapeHTML(v.purchaseDate)}</div>
+    <div style="margin-bottom:8px"><strong>Purchase:</strong> ${Number(v.purchase).toFixed(2)}</div>
+    <div style="margin-bottom:8px"><strong>Expense:</strong> ${Number(v.expense).toFixed(2)}</div>
+    <div style="margin-bottom:8px"><strong>Selling:</strong> ${Number(v.selling).toFixed(2)}</div>
+    <div style="margin-bottom:8px"><strong>Profit:</strong> ${Number(v.profit).toFixed(2)}</div>
+    <div style="margin-bottom:8px"><strong>Status:</strong> ${escapeHTML(v.status)}</div>
+    <div style="margin-bottom:8px"><strong>Notes:</strong> ${escapeHTML(v.notes||'')}</div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="action btn-primary" onclick="closeModal()">Close</button>
+    </div>
+  `;
+}
+
+/* close modal */
+function closeModal(){ overlay.style.display="none"; modalContent.innerHTML=""; }
+
+/* print */
+function printPage(){ window.print(); }
+
+/* localStorage save */
+function saveStorage(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(vehicles)); }
+
+/* init render */
+renderTable();
+
+/* overlay click close */
+overlay.addEventListener("click", (e)=>{ if(e.target === overlay) closeModal(); });
+
+</script>
+</body>
+</html>
