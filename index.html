@@ -14,8 +14,8 @@
 html,body{height:100%;margin:0;font-family:Inter,Segoe UI,Roboto,Arial,sans-serif;}
 body{
   background:
-    radial-gradient(circle at 10% 10%, rgba(37,99,235,0.08), transparent 10%),
-    linear-gradient(135deg,#04102a 0%, #062745 50%, #003040 100%);
+   radial-gradient(circle at 10% 10%, rgba(37,99,235,0.08), transparent 10%),
+   linear-gradient(135deg,#04102a 0%, #062745 50%, #003040 100%);
   display:flex; align-items:center; justify-content:center; padding:28px;
 }
 .container{
@@ -53,6 +53,18 @@ tbody tr:hover{background:rgba(15,23,42,0.02);cursor:pointer}
 .modal{background:#fff;padding:18px;width:360px;border-radius:12px;box-shadow:0 15px 40px rgba(2,6,23,0.4)}
 .small{font-size:13px;color:var(--muted);margin-bottom:8px}
 .footer-note{margin-top:12px;color:var(--muted);font-size:13px}
+
+/* New styles for make/model selects to allow scrolling */
+.select-scroll{
+  max-height:180px; /* visible rows in dropdown (browser respects this for multiple size) */
+  overflow-y:auto;
+}
+
+/* Manual model input (hidden unless needed) */
+.manual-row{display:none;gap:8px;align-items:center;margin-top:6px}
+.manual-row input{flex:1;padding:8px;border-radius:6px;border:1px solid #e6e7ef}
+
+/* Print layout: keep separate to open a print window with letterhead */
 @media (max-width:1000px){.form-grid{grid-template-columns:repeat(2,1fr)}table{min-width:800px}}
 @media (max-width:700px){.form-grid{grid-template-columns:1fr}}
 </style>
@@ -69,7 +81,7 @@ tbody tr:hover{background:rgba(15,23,42,0.02);cursor:pointer}
     </div>
 
     <div style="display:flex;gap:8px;align-items:center">
-      <button class="action btn-primary" onclick="printPage()">Print</button>
+      <button class="action btn-primary" onclick="printReport()">Print</button>
       <button class="action btn-info" onclick="openFilter()">Filter</button>
       <button class="action btn-ghost" onclick="showDetails()">Show Details</button>
     </div>
@@ -84,12 +96,34 @@ tbody tr:hover{background:rgba(15,23,42,0.02);cursor:pointer}
 
     <div class="field">
       <label for="make">Make</label>
-      <input id="make" type="text" placeholder="e.g. Toyota">
+      <!-- make select: scrollable inside dropdown (size attribute helps on some browsers) -->
+      <select id="make" onchange="onMakeChange()" size="1" style="cursor:pointer">
+        <option value="">-- Select Make --</option>
+        <option>Toyota</option>
+        <option>Nissan</option>
+        <option>Honda</option>
+        <option>Mitsubishi</option>
+        <option>Mazda</option>
+        <option>Suzuki</option>
+        <option>Subaru</option>
+        <option>Daihatsu</option>
+        <option>Isuzu</option>
+        <option>Hino</option>
+        <option>Ford</option>
+        <option>Chevrolet</option>
+        <option>Other</option>
+      </select>
     </div>
 
     <div class="field">
       <label for="model">Model</label>
-      <input id="model" type="text" placeholder="e.g. Hiace">
+      <select id="model" size="1" style="cursor:pointer">
+        <option value="">-- Select Model --</option>
+      </select>
+      <div id="manualModelRow" class="manual-row">
+        <input id="manualModelInput" type="text" placeholder="Enter model manually" />
+        <button class="action btn-success" onclick="addManualModel()">Add</button>
+      </div>
     </div>
 
     <div class="field">
@@ -184,6 +218,22 @@ tbody tr:hover{background:rgba(15,23,42,0.02);cursor:pointer}
   <div class="modal" id="modalContent" role="document"></div>
 </div>
 
+<!-- Hidden print template area (used to generate the print window content) -->
+<div id="printTemplate" style="display:none">
+  <div style="font-family:Arial, Helvetica, sans-serif; padding:20px; color:#111;">
+    <div style="text-align:center; border-bottom:2px solid #222; padding-bottom:12px; margin-bottom:12px;">
+      <div style="font-size:20px; font-weight:800;">Season Enterprises</div>
+      <div style="font-size:13px; color:#333; margin-top:6px;">Japan • Phone: — • Email: —</div>
+    </div>
+
+    <div id="printBody"></div>
+
+    <div style="margin-top:20px; font-size:12px; color:#444;">
+      <div>Prepared on: <span id="printDate"></span></div>
+    </div>
+  </div>
+</div>
+
 <script>
 /* ====== Data storage: localStorage key ====== */
 const STORAGE_KEY = "vehicle_stock_records_v1";
@@ -216,6 +266,24 @@ const totalExpense = document.getElementById("totalExpense");
 const overlay = document.getElementById("overlay");
 const modalContent = document.getElementById("modalContent");
 const searchText = document.getElementById("searchText");
+const manualModelRow = document.getElementById("manualModelRow");
+const manualModelInput = document.getElementById("manualModelInput");
+
+/* ===== model data for auto-fill (expand as you like) ===== */
+const modelData = {
+  Toyota: ["Aqua","Prius","Vitz","Hiace","Corolla","Crown","Rav4","Land Cruiser","Harrier","Alphard","Vellfire","Fortuner"],
+  Nissan: ["Note","Leaf","Serena","X-Trail","Skyline","NV350","Caravan","Elgrand"],
+  Honda: ["Fit","Vezel","N-Box","Civic","Stepwgn","Odyssey"],
+  Mitsubishi: ["Delica","Pajero","Outlander"],
+  Mazda: ["Demio","Axela","CX-5","Bongo"],
+  Suzuki: ["Alto","Swift","Jimny"],
+  Subaru: ["Impreza","Forester","Levorg"],
+  Daihatsu: ["Mira","Hijet","Thor"],
+  Isuzu: ["Elf","D-MAX"],
+  Hino: ["Dutro","Profia"],
+  Ford: ["Ranger","Fiesta"],
+  Chevrolet: ["Tavera","Impala"]
+};
 
 /* sync profit when inputs change */
 [purchasePrice, expense, sellingPrice].forEach(el => el.addEventListener("input", updateProfitField));
@@ -262,6 +330,8 @@ function selectRow(idx, trElem){
   const v = vehicles[idx];
   vehId.value = v.id;
   make.value = v.make;
+  // populate model list for make then select
+  populateModelsFor(make.value);
   model.value = v.model;
   year.value = v.year;
   chassis.value = v.chassis;
@@ -308,7 +378,12 @@ function deleteVehicle(){
 function gatherForm(){
   const idVal = vehId.value.trim();
   const makeVal = make.value.trim();
-  const modelVal = model.value.trim();
+  let modelVal = model.value.trim();
+  // if Model is 'Other (Manual)' and manual input present, use manual input
+  if(modelVal.toLowerCase().includes("manual") || modelVal === "Enter Manually"){
+    const mm = manualModelInput.value.trim();
+    if(mm) modelVal = mm;
+  }
   const yearVal = Number(year.value) || 0;
   const chassisVal = chassis.value.trim();
   const pDate = purchaseDate.value;
@@ -330,8 +405,10 @@ function gatherForm(){
 function clearForm(){
   vehId.value = make.value = model.value = year.value = chassis.value = purchaseDate.value = "";
   purchasePrice.value = expense.value = sellingPrice.value = profit.value = status.value = notes.value = "";
+  manualModelInput.value = "";
   selectedIndex = -1;
   [...tbody.children].forEach(tr=>tr.classList.remove("selected"));
+  manualModelRow.style.display = "none";
 }
 
 /* search */
@@ -432,8 +509,70 @@ function showDetails(){
 /* close modal */
 function closeModal(){ overlay.style.display="none"; modalContent.innerHTML=""; }
 
-/* print */
-function printPage(){ window.print(); }
+/* printReport: prints only the report (letterhead + table of visible rows or selected row) */
+function printReport(){
+  // Build the report content: if a row is selected, print that vehicle only; otherwise print the current table view
+  const selected = (selectedIndex >= 0 && selectedIndex < vehicles.length) ? [vehicles[selectedIndex]] : null;
+  // If table is filtered, use only visible rows (tbody current children)
+  const visibleRows = [...tbody.children].map(tr => {
+    const cells = [...tr.children].map(td => td.textContent);
+    return {
+      id: cells[0],
+      make: cells[1],
+      model: cells[2],
+      year: cells[3],
+      chassis: cells[4],
+      purchase: cells[5],
+      expense: cells[6],
+      selling: cells[7],
+      profit: cells[8],
+      status: cells[9]
+    };
+  });
+
+  const toPrint = selected ? selected : visibleRows;
+
+  // prepare HTML fragment using the hidden template
+  const template = document.getElementById("printTemplate").innerHTML;
+  const wrapper = document.createElement("div");
+  wrapper.innerHTML = template;
+  const bodyNode = wrapper.querySelector("#printBody");
+  if(!bodyNode) return alert("Print error.");
+
+  // create a clean table for report
+  let rowsHtml = '<table style="width:100%;border-collapse:collapse;margin-top:8px"><thead><tr style="background:#eee"><th style="padding:8px;border:1px solid #ccc">ID</th><th style="padding:8px;border:1px solid #ccc">Make</th><th style="padding:8px;border:1px solid #ccc">Model</th><th style="padding:8px;border:1px solid #ccc">Year</th><th style="padding:8px;border:1px solid #ccc">Chassis</th><th style="padding:8px;border:1px solid #ccc">Purchase</th><th style="padding:8px;border:1px solid #ccc">Expense</th><th style="padding:8px;border:1px solid #ccc">Selling</th><th style="padding:8px;border:1px solid #ccc">Profit</th><th style="padding:8px;border:1px solid #ccc">Status</th></tr></thead><tbody>';
+  toPrint.forEach(r => {
+    rowsHtml += `<tr>
+      <td style="padding:6px;border:1px solid #ddd">${escapeHTML(r.id)}</td>
+      <td style="padding:6px;border:1px solid #ddd">${escapeHTML(r.make)}</td>
+      <td style="padding:6px;border:1px solid #ddd">${escapeHTML(r.model)}</td>
+      <td style="padding:6px;border:1px solid #ddd;text-align:center">${escapeHTML(r.year)}</td>
+      <td style="padding:6px;border:1px solid #ddd">${escapeHTML(r.chassis)}</td>
+      <td style="padding:6px;border:1px solid #ddd;text-align:right">${escapeHTML(String(r.purchase))}</td>
+      <td style="padding:6px;border:1px solid #ddd;text-align:right">${escapeHTML(String(r.expense))}</td>
+      <td style="padding:6px;border:1px solid #ddd;text-align:right">${escapeHTML(String(r.selling))}</td>
+      <td style="padding:6px;border:1px solid #ddd;text-align:right">${escapeHTML(String(r.profit))}</td>
+      <td style="padding:6px;border:1px solid #ddd;text-align:center">${escapeHTML(r.status)}</td>
+    </tr>`;
+  });
+  rowsHtml += '</tbody></table>';
+
+  bodyNode.innerHTML = rowsHtml;
+  // set date
+  wrapper.querySelector("#printDate").textContent = new Date().toLocaleString();
+
+  // open print window
+  const w = window.open("", "_blank", "width=900,height=700");
+  w.document.write('<!doctype html><html><head><title>Report</title>');
+  // simple print styles
+  w.document.write('<style>body{font-family:Arial, Helvetica, sans-serif;color:#111;margin:0;padding:18px}table{font-size:12px}thead th{font-weight:700}</style>');
+  w.document.write('</head><body>');
+  w.document.write(wrapper.innerHTML);
+  w.document.write('</body></html>');
+  w.document.close();
+  // small delay to allow resources to render
+  w.print();
+}
 
 /* localStorage save */
 function saveStorage(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(vehicles)); }
@@ -444,6 +583,70 @@ renderTable();
 /* overlay click close */
 overlay.addEventListener("click", (e)=>{ if(e.target === overlay) closeModal(); });
 
+/* ===== Model / Make handling ===== */
+function onMakeChange(){
+  const mk = make.value;
+  populateModelsFor(mk);
+  // If make is Other, show manual model input
+  if(mk === "Other"){
+    model.innerHTML = '<option value="Enter Manually">Enter Manually</option>';
+    manualModelRow.style.display = "flex";
+  } else {
+    manualModelRow.style.display = "none";
+  }
+}
+
+function populateModelsFor(makeName){
+  const modelSelect = model;
+  modelSelect.innerHTML = "";
+  if(!makeName) {
+    modelSelect.innerHTML = '<option value="">-- Select Model --</option>';
+    manualModelRow.style.display = "none";
+    return;
+  }
+  if(makeName === "Other"){
+    modelSelect.innerHTML = '<option>Enter Manually</option>';
+    manualModelRow.style.display = "flex";
+    return;
+  }
+  const models = modelData[makeName] || [];
+  let html = '<option value="">-- Select Model --</option>';
+  models.forEach(m => {
+    html += `<option>${m}</option>`;
+  });
+  html += '<option>Other (Manual)</option>';
+  modelSelect.innerHTML = html;
+  manualModelRow.style.display = "none";
+}
+
+/* allow adding a manual model to the current make's list */
+function addManualModel(){
+  const txt = manualModelInput.value.trim();
+  const mk = make.value;
+  if(!txt) return alert("Enter the model name to add.");
+  // add to modelData for this make (persist only in session/localStorage of models - not persisted to vehicle list)
+  if(!modelData[mk]) modelData[mk] = [];
+  modelData[mk].push(txt);
+  populateModelsFor(mk);
+  model.value = txt;
+  manualModelInput.value = "";
+  manualModelRow.style.display = "none";
+}
+
+/* When user chooses model option 'Other (Manual)' show manual input */
+model.addEventListener("change", function(){
+  const val = model.value;
+  if(val && (val.toLowerCase().includes("manual") || val === "Enter Manually")){
+    manualModelRow.style.display = "flex";
+  } else {
+    manualModelRow.style.display = "none";
+  }
+});
+
+/* Optional: allow keyboard-friendly selection for make (scroll)
+   (no changes to layout: browsers show select scroll by default) */
+
+/* End of script */
 </script>
 </body>
 </html>
