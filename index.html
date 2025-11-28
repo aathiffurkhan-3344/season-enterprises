@@ -60,7 +60,7 @@ tbody tr:hover{background:rgba(15,23,42,0.02);cursor:pointer}
   overflow-y:auto;
 }
 
-/* Manual model input (hidden unless needed) */
+/* Manual model/make input (hidden unless needed) */
 .manual-row{display:none;gap:8px;align-items:center;margin-top:6px}
 .manual-row input{flex:1;padding:8px;border-radius:6px;border:1px solid #e6e7ef}
 
@@ -96,23 +96,11 @@ tbody tr:hover{background:rgba(15,23,42,0.02);cursor:pointer}
 
     <div class="field">
       <label for="make">Make</label>
-      <!-- make select: scrollable inside dropdown (size attribute helps on some browsers) -->
-      <select id="make" onchange="onMakeChange()" size="1" style="cursor:pointer">
-        <option value="">-- Select Make --</option>
-        <option>Toyota</option>
-        <option>Nissan</option>
-        <option>Honda</option>
-        <option>Mitsubishi</option>
-        <option>Mazda</option>
-        <option>Suzuki</option>
-        <option>Subaru</option>
-        <option>Daihatsu</option>
-        <option>Isuzu</option>
-        <option>Hino</option>
-        <option>Ford</option>
-        <option>Chevrolet</option>
-        <option>Other</option>
-      </select>
+      <select id="make" onchange="onMakeChange()" size="1" style="cursor:pointer"></select>
+      <div id="manualMakeRow" class="manual-row" style="margin-top:8px;">
+        <input id="manualMakeInput" type="text" placeholder="Enter make manually" />
+        <button class="action btn-success" onclick="addManualMake()">Add</button>
+      </div>
     </div>
 
     <div class="field">
@@ -157,13 +145,23 @@ tbody tr:hover{background:rgba(15,23,42,0.02);cursor:pointer}
     </div>
 
     <div class="field">
+      <label for="soldPrice">Sold Price (if Sold)</label>
+      <input id="soldPrice" type="number" min="0" step="0.01" placeholder="0.00">
+    </div>
+
+    <div class="field">
+      <label for="soldDate">Sold Date (if Sold)</label>
+      <input id="soldDate" type="date">
+    </div>
+
+    <div class="field">
       <label for="profit">Profit (auto)</label>
       <input id="profit" type="text" readonly placeholder="Auto-calculated">
     </div>
 
     <div class="field">
       <label for="status">Status</label>
-      <select id="status">
+      <select id="status" onchange="toggleSoldFields()">
         <option>Available</option>
         <option>Sold</option>
         <option>On Hold</option>
@@ -222,8 +220,8 @@ tbody tr:hover{background:rgba(15,23,42,0.02);cursor:pointer}
 <div id="printTemplate" style="display:none">
   <div style="font-family:Arial, Helvetica, sans-serif; padding:20px; color:#111;">
     <div style="text-align:center; border-bottom:2px solid #222; padding-bottom:12px; margin-bottom:12px;">
-      <div style="font-size:20px; font-weight:800;">Season Enterprises</div>
-      <div style="font-size:13px; color:#333; margin-top:6px;">Japan • Phone: — • Email: —</div>
+      <div style="font-size:20px; font-weight:800;">Season enterprises</div>
+      <div style="font-size:13px; color:#333; margin-top:6px;">Japan • Phone: 090-6010-5544 • Email: Seasonemterprise2014@gmail.com</div>
     </div>
 
     <div id="printBody"></div>
@@ -235,13 +233,15 @@ tbody tr:hover{background:rgba(15,23,42,0.02);cursor:pointer}
 </div>
 
 <script>
-/* ====== Data storage: localStorage key ====== */
+/* ====== Data storage: localStorage keys ====== */
 const STORAGE_KEY = "vehicle_stock_records_v1";
+const MAKES_KEY = "vehicle_makes_v1";
+const MODELS_KEY = "vehicle_models_v1";
 
-/* ====== sample initial data (if none in storage) ====== */
+/* ====== initial/default data ====== */
 let vehicles = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null") || [
-  { id:"V001", make:"Toyota", model:"Hiace", year:2018, chassis:"CHS001", purchaseDate:"2019-02-15", purchase:2000000, expense:150000, selling:2500000, profit: (2500000-(2000000+150000)), status:"Available", notes:"Good condition" },
-  { id:"V002", make:"Nissan", model:"Caravan", year:2016, chassis:"CHS002", purchaseDate:"2017-06-10", purchase:1800000, expense:100000, selling:2200000, profit: (2200000-(1800000+100000)), status:"Sold", notes:"Sold last month" }
+  { id:"V001", make:"Toyota", model:"Hiace", year:2018, chassis:"CHS001", purchaseDate:"2019-02-15", purchase:2000000, expense:150000, selling:2500000, profit:(2500000-(2000000+150000)), status:"Available", notes:"Good condition", soldPrice:null, soldDate:null },
+  { id:"V002", make:"Nissan", model:"Caravan", year:2016, chassis:"CHS002", purchaseDate:"2017-06-10", purchase:1800000, expense:100000, selling:2200000, profit:(2200000-(1800000+100000)), status:"Sold", notes:"Sold last month", soldPrice:2200000, soldDate:"2025-10-01" }
 ];
 
 let selectedIndex = -1;
@@ -257,6 +257,8 @@ const purchaseDate = document.getElementById("purchaseDate");
 const purchasePrice = document.getElementById("purchasePrice");
 const expense = document.getElementById("expense");
 const sellingPrice = document.getElementById("sellingPrice");
+const soldPrice = document.getElementById("soldPrice");
+const soldDate = document.getElementById("soldDate");
 const profit = document.getElementById("profit");
 const status = document.getElementById("status");
 const notes = document.getElementById("notes");
@@ -268,9 +270,12 @@ const modalContent = document.getElementById("modalContent");
 const searchText = document.getElementById("searchText");
 const manualModelRow = document.getElementById("manualModelRow");
 const manualModelInput = document.getElementById("manualModelInput");
+const manualMakeRow = document.getElementById("manualMakeRow");
+const manualMakeInput = document.getElementById("manualMakeInput");
 
-/* ===== model data for auto-fill (expand as you like) ===== */
-const modelData = {
+/* ===== model & make data (persistent) ====== */
+let makeList = JSON.parse(localStorage.getItem(MAKES_KEY)) || ["Toyota","Nissan","Honda","Mitsubishi","Mazda","Suzuki","Subaru","Daihatsu","Isuzu","Hino","Ford","Chevrolet","Other"];
+let modelData = JSON.parse(localStorage.getItem(MODELS_KEY)) || {
   Toyota: ["Aqua","Prius","Vitz","Hiace","Corolla","Crown","Rav4","Land Cruiser","Harrier","Alphard","Vellfire","Fortuner"],
   Nissan: ["Note","Leaf","Serena","X-Trail","Skyline","NV350","Caravan","Elgrand"],
   Honda: ["Fit","Vezel","N-Box","Civic","Stepwgn","Odyssey"],
@@ -285,8 +290,110 @@ const modelData = {
   Chevrolet: ["Tavera","Impala"]
 };
 
+/* helper: persist make/model lists and vehicles */
+function persistAll(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(vehicles));
+  localStorage.setItem(MAKES_KEY, JSON.stringify(makeList));
+  localStorage.setItem(MODELS_KEY, JSON.stringify(modelData));
+}
+
+/* fill make select from makeList */
+function populateMakes(){
+  make.innerHTML = '<option value="">-- Select Make --</option>';
+  makeList.forEach(mk => {
+    const o = document.createElement("option");
+    o.value = mk;
+    o.textContent = mk;
+    make.appendChild(o);
+  });
+}
+
+/* populate model select when make changes */
+function populateModelsFor(makeName){
+  model.innerHTML = "";
+  if(!makeName){
+    model.innerHTML = '<option value="">-- Select Model --</option>';
+    manualModelRow.style.display = "none";
+    return;
+  }
+  if(makeName === "Other"){
+    model.innerHTML = '<option value="Enter Manually">Enter Manually</option>';
+    manualModelRow.style.display = "flex";
+    manualMakeRow.style.display = "flex";
+    return;
+  }
+  const models = modelData[makeName] || [];
+  let html = '<option value="">-- Select Model --</option>';
+  models.forEach(m => { html += `<option value="${m}">${m}</option>`; });
+  html += '<option value="Other (Manual)">Other (Manual)</option>';
+  model.innerHTML = html;
+  manualModelRow.style.display = "none";
+  manualMakeRow.style.display = "none";
+}
+
+/* when make select changed */
+function onMakeChange(){
+  const mk = make.value;
+  populateModelsFor(mk);
+  if(mk === "Other"){
+    manualMakeRow.style.display = "flex";
+  } else {
+    manualMakeRow.style.display = "none";
+  }
+}
+
+/* add manual make permanently */
+function addManualMake(){
+  const txt = manualMakeInput.value.trim();
+  if(!txt) return alert("Enter make name.");
+  // prevent duplicates (case-insensitive)
+  if(makeList.some(m=>m.toLowerCase()===txt.toLowerCase())){
+    alert("Make already exists.");
+    manualMakeInput.value = "";
+    populateMakes();
+    return;
+  }
+  // insert before 'Other' option (if present)
+  const otherIndex = makeList.indexOf("Other");
+  if(otherIndex >= 0) makeList.splice(otherIndex,0,txt);
+  else makeList.push(txt);
+  modelData[txt] = modelData[txt] || [];
+  persistAll();
+  populateMakes();
+  make.value = txt;
+  populateModelsFor(txt);
+  manualMakeInput.value = "";
+  manualMakeRow.style.display = "none";
+  alert("Make added.");
+}
+
+/* add manual model permanently for the current make */
+function addManualModel(){
+  const txt = manualModelInput.value.trim();
+  const mk = make.value;
+  if(!mk || mk === "Other") return alert("Select a make first (or add a Make).");
+  if(!txt) return alert("Enter model name.");
+  modelData[mk] = modelData[mk] || [];
+  // prevent duplicate
+  if(modelData[mk].some(m=>m.toLowerCase()===txt.toLowerCase())){
+    alert("Model already exists for this make.");
+    manualModelInput.value = "";
+    populateModelsFor(mk);
+    return;
+  }
+  modelData[mk].push(txt);
+  persistAll();
+  populateModelsFor(mk);
+  model.value = txt;
+  manualModelInput.value = "";
+  manualModelRow.style.display = "none";
+  alert("Model added.");
+}
+
 /* sync profit when inputs change */
-[purchasePrice, expense, sellingPrice].forEach(el => el.addEventListener("input", updateProfitField));
+[purchasePrice, expense, sellingPrice, soldPrice].forEach(el => {
+  if(el) el.addEventListener("input", updateProfitField);
+});
 function updateProfitField(){
   const p = Number(purchasePrice.value) || 0;
   const e = Number(expense.value) || 0;
@@ -316,7 +423,7 @@ function renderTable(list = vehicles){
     tbody.appendChild(tr);
   });
   updateStats(list);
-  saveStorage();
+  persistAll();
 }
 
 /* escape HTML */
@@ -329,9 +436,8 @@ function selectRow(idx, trElem){
   selectedIndex = idx;
   const v = vehicles[idx];
   vehId.value = v.id;
-  make.value = v.make;
-  // populate model list for make then select
-  populateModelsFor(make.value);
+  populateMakes(); make.value = v.make;
+  populateModelsFor(v.make);
   model.value = v.model;
   year.value = v.year;
   chassis.value = v.chassis;
@@ -339,8 +445,11 @@ function selectRow(idx, trElem){
   purchasePrice.value = v.purchase;
   expense.value = v.expense;
   sellingPrice.value = v.selling;
-  profit.value = Number(v.profit).toFixed(2);
+  soldPrice.value = v.soldPrice || "";
+  soldDate.value = v.soldDate || "";
+  updateProfitField();
   status.value = v.status;
+  toggleSoldFields();
   notes.value = v.notes || "";
 }
 
@@ -351,6 +460,7 @@ function addVehicle(){
   vehicles.push(v);
   clearForm();
   renderTable();
+  alert("Vehicle added.");
 }
 
 /* update vehicle */
@@ -362,6 +472,7 @@ function updateVehicle(){
   selectedIndex = -1;
   clearForm();
   renderTable();
+  alert("Vehicle updated.");
 }
 
 /* delete */
@@ -379,7 +490,7 @@ function gatherForm(){
   const idVal = vehId.value.trim();
   const makeVal = make.value.trim();
   let modelVal = model.value.trim();
-  // if Model is 'Other (Manual)' and manual input present, use manual input
+  // if Model is 'Other (Manual)' or Enter Manually and manual input present, use manual input
   if(modelVal.toLowerCase().includes("manual") || modelVal === "Enter Manually"){
     const mm = manualModelInput.value.trim();
     if(mm) modelVal = mm;
@@ -389,7 +500,9 @@ function gatherForm(){
   const pDate = purchaseDate.value;
   const pPrice = Number(purchasePrice.value);
   const expVal = Number(expense.value) || 0;
-  const sellVal = Number(sellingPrice.value);
+  const sellVal = Number(sellingPrice.value) || 0;
+  const sPrice = soldPrice.value ? Number(soldPrice.value) : null;
+  const sDate = soldDate.value || null;
   const stat = status.value;
   const notesVal = notes.value.trim();
 
@@ -398,17 +511,18 @@ function gatherForm(){
     return null;
   }
   const prof = sellVal - (pPrice + expVal);
-  return { id:idVal, make:makeVal, model:modelVal, year:yearVal, chassis:chassisVal, purchaseDate:pDate, purchase:pPrice, expense:expVal, selling:sellVal, profit:prof, status:stat, notes:notesVal };
+  return { id:idVal, make:makeVal, model:modelVal, year:yearVal, chassis:chassisVal, purchaseDate:pDate, purchase:pPrice, expense:expVal, selling:sellVal, profit:prof, status:stat, notes:notesVal, soldPrice:sPrice, soldDate:sDate };
 }
 
 /* clear form */
 function clearForm(){
   vehId.value = make.value = model.value = year.value = chassis.value = purchaseDate.value = "";
-  purchasePrice.value = expense.value = sellingPrice.value = profit.value = status.value = notes.value = "";
-  manualModelInput.value = "";
+  purchasePrice.value = expense.value = sellingPrice.value = profit.value = soldPrice.value = soldDate.value = status.value = notes.value = "";
+  manualModelInput.value = manualMakeInput.value = "";
   selectedIndex = -1;
   [...tbody.children].forEach(tr=>tr.classList.remove("selected"));
   manualModelRow.style.display = "none";
+  manualMakeRow.style.display = "none";
 }
 
 /* search */
@@ -575,62 +689,26 @@ function printReport(){
 }
 
 /* localStorage save */
-function saveStorage(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(vehicles)); }
+function saveStorage(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(vehicles)); localStorage.setItem(MAKES_KEY, JSON.stringify(makeList)); localStorage.setItem(MODELS_KEY, JSON.stringify(modelData)); }
 
 /* init render */
+populateMakes();
+populateModelsFor(make.value);
 renderTable();
 
 /* overlay click close */
 overlay.addEventListener("click", (e)=>{ if(e.target === overlay) closeModal(); });
 
-/* ===== Model / Make handling ===== */
-function onMakeChange(){
-  const mk = make.value;
-  populateModelsFor(mk);
-  // If make is Other, show manual model input
-  if(mk === "Other"){
-    model.innerHTML = '<option value="Enter Manually">Enter Manually</option>';
-    manualModelRow.style.display = "flex";
+/* ===== Model / Make handling and events ===== */
+function toggleSoldFields(){
+  const st = status.value;
+  if(st === "Sold"){
+    soldPrice.parentElement.style.display = "block";
+    soldDate.parentElement.style.display = "block";
   } else {
-    manualModelRow.style.display = "none";
+    soldPrice.parentElement.style.display = "none";
+    soldDate.parentElement.style.display = "none";
   }
-}
-
-function populateModelsFor(makeName){
-  const modelSelect = model;
-  modelSelect.innerHTML = "";
-  if(!makeName) {
-    modelSelect.innerHTML = '<option value="">-- Select Model --</option>';
-    manualModelRow.style.display = "none";
-    return;
-  }
-  if(makeName === "Other"){
-    modelSelect.innerHTML = '<option>Enter Manually</option>';
-    manualModelRow.style.display = "flex";
-    return;
-  }
-  const models = modelData[makeName] || [];
-  let html = '<option value="">-- Select Model --</option>';
-  models.forEach(m => {
-    html += `<option>${m}</option>`;
-  });
-  html += '<option>Other (Manual)</option>';
-  modelSelect.innerHTML = html;
-  manualModelRow.style.display = "none";
-}
-
-/* allow adding a manual model to the current make's list */
-function addManualModel(){
-  const txt = manualModelInput.value.trim();
-  const mk = make.value;
-  if(!txt) return alert("Enter the model name to add.");
-  // add to modelData for this make (persist only in session/localStorage of models - not persisted to vehicle list)
-  if(!modelData[mk]) modelData[mk] = [];
-  modelData[mk].push(txt);
-  populateModelsFor(mk);
-  model.value = txt;
-  manualModelInput.value = "";
-  manualModelRow.style.display = "none";
 }
 
 /* When user chooses model option 'Other (Manual)' show manual input */
@@ -643,10 +721,23 @@ model.addEventListener("change", function(){
   }
 });
 
-/* Optional: allow keyboard-friendly selection for make (scroll)
-   (no changes to layout: browsers show select scroll by default) */
+/* When user chooses make 'Other' show manual make input */
+make.addEventListener("change", function(){
+  const val = make.value;
+  if(val === "Other"){
+    manualMakeRow.style.display = "flex";
+    // also show manual model input
+    manualModelRow.style.display = "flex";
+    model.innerHTML = '<option value="Enter Manually">Enter Manually</option>';
+  } else {
+    manualMakeRow.style.display = "none";
+    manualModelRow.style.display = "none";
+  }
+});
 
-/* End of script */
+/* small helper to ensure saved data updated */
+window.addEventListener("beforeunload", persistAll);
+
 </script>
 </body>
 </html>
