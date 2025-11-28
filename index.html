@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<title>Season Enterprises — Vehicle Stock & Business Management</title>
+<title>Vehicle Stock & Business Management — Season enterprises</title>
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <style>
 :root{
@@ -11,12 +11,12 @@
   --accent2:#06b6d4;
   --muted:#6b7280;
 }
-html,body{height:100%;margin:0;font-family:Inter,Segoe UI,Roboto,Arial,sans-serif;background:#eef3f9;}
-.app-wrap{display:flex;align-items:flex-start;justify-content:center;padding:28px;}
+html,body{height:100%;margin:0;font-family:Inter,Segoe UI,Roboto,Arial,sans-serif;background:linear-gradient(135deg,#04102a 0%, #062745 50%, #003040 100%);}
+.app-wrap{display:flex; align-items:center; justify-content:center; padding:28px; min-height:100vh;}
 .container{
   width:100%; max-width:1100px;
   background:var(--card-bg); border-radius:14px; padding:20px 22px;
-  box-shadow:0 12px 30px rgba(2,6,23,0.12); border:1px solid rgba(0,0,0,0.04);
+  box-shadow:0 12px 30px rgba(2,6,23,0.45); border:1px solid rgba(255,255,255,0.04);
 }
 .h-row{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}
 .badge{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:8px 12px;border-radius:10px;font-weight:700}
@@ -24,12 +24,12 @@ html,body{height:100%;margin:0;font-family:Inter,Segoe UI,Roboto,Arial,sans-seri
 .form-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:10px}
 .field{display:flex;flex-direction:column}
 label{font-weight:600;margin-bottom:6px;color:#0f172a}
-input[type="text"], input[type="date"], input[type="number"], select, textarea{
+input[type="text"], input[type="email"], input[type="password"], input[type="date"], input[type="number"], select, textarea{
   padding:10px;border-radius:8px;border:1px solid #e6e7ef;font-size:14px;background:#fff;outline:none;
 }
 textarea{min-height:56px;resize:vertical}
 .controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
-button.action{padding:10px 14px;border-radius:10px;border:0;color:#fff;cursor:pointer;font-weight:700;box-shadow:0 8px 18px rgba(2,6,23,0.08)}
+button.action{padding:10px 14px;border-radius:10px;border:0;color:#fff;cursor:pointer;font-weight:700;box-shadow:0 8px 18px rgba(2,6,23,0.12)}
 .btn-primary{background:var(--accent)}
 .btn-ghost{background:#6b7280}
 .btn-success{background:#16a34a}
@@ -49,49 +49,54 @@ tbody tr:hover{background:rgba(15,23,42,0.02);cursor:pointer}
 .small{font-size:13px;color:var(--muted);margin-bottom:8px}
 .footer-note{margin-top:12px;color:var(--muted);font-size:13px}
 
-/* Manual make/model input row */
+/* Login / forgot */
+.center-card{max-width:420px;margin:auto;margin-top:36px}
+.login-title{font-size:20px;margin-bottom:8px}
+.linkish{color:var(--accent);cursor:pointer;text-decoration:underline;font-size:13px}
+
+/* manual inputs */
 .manual-row{display:none;gap:8px;align-items:center;margin-top:6px}
 .manual-row input{flex:1;padding:8px;border-radius:6px;border:1px solid #e6e7ef}
 
-/* Login page styles */
-#loginScreen{min-height:100vh;display:flex;align-items:center;justify-content:center}
-.login-card{width:360px;background:#fff;padding:22px;border-radius:12px;box-shadow:0 10px 30px rgba(2,6,23,0.12);text-align:center}
-
-/* Print page small tweaks - the print window has its own styles when generated */
+/* print template styles (used in new window) */
 @media (max-width:1000px){.form-grid{grid-template-columns:repeat(2,1fr)}table{min-width:800px}}
 @media (max-width:700px){.form-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
-
-<!-- LOGIN SCREEN -->
-<div id="loginScreen">
-  <div class="login-card" role="dialog" aria-labelledby="loginTitle">
-    <div style="display:flex;justify-content:center;align-items:center;gap:12px;margin-bottom:8px">
-      <div class="badge">Season Enterprises</div>
+<div class="app-wrap">
+  <!-- LOGIN SCREEN -->
+  <div id="loginScreen" class="container" style="max-width:520px;">
+    <div class="center-card card">
+      <div class="login-title">Season enterprises — Admin Login</div>
+      <label for="loginUser">Username</label>
+      <input id="loginUser" type="text" placeholder="admin" onkeydown="if(event.key==='Enter') attemptLogin()">
+      <label for="loginPass" style="margin-top:8px">Password</label>
+      <input id="loginPass" type="password" placeholder="password (press Enter to login)" onkeydown="if(event.key==='Enter') attemptLogin()">
+      <p style="margin-top:12px; display:flex; gap:8px; align-items:center;">
+        <span class="linkish" onclick="showForgot()">Forgot password?</span>
+        <span style="flex:1"></span>
+        <!-- login button intentionally removed as requested -->
+      </p>
+      <div style="margin-top:6px; color:var(--muted); font-size:13px;">Tip: press <strong>Enter</strong> after typing password to log in.</div>
     </div>
-    <h3 id="loginTitle" style="margin:6px 0 14px">Vehicle Management — Login</h3>
 
-    <label style="text-align:left">Username</label>
-    <input id="loginUser" type="text" placeholder="admin" value="admin" />
-
-    <label style="text-align:left;margin-top:8px">Password</label>
-    <input id="loginPass" type="password" placeholder="admin" value="admin" />
-
-    <div style="display:flex;gap:8px;margin-top:14px">
-      <button class="action btn-primary" style="flex:1" onclick="doLogin()">Login</button>
-      <button class="action btn-ghost" style="flex:1" onclick="fillDemo()">Fill</button>
-    </div>
-    <div style="margin-top:12px;color:var(--muted);font-size:13px">
-      Default credentials: <strong>admin / admin</strong>
+    <!-- Forgot password card -->
+    <div id="forgotCard" class="center-card card" style="display:none; margin-top:18px;">
+      <div class="login-title">Reset password</div>
+      <label for="resetEmail">Enter company email</label>
+      <input id="resetEmail" type="email" placeholder="Seasonemterprise2014@gmail.com" onkeydown="if(event.key==='Enter') tryResetEmail()">
+      <div style="display:flex; gap:8px; margin-top:10px;">
+        <button class="action btn-primary" onclick="tryResetEmail()">Reset</button>
+        <button class="action btn-ghost" onclick="hideForgot()">Back</button>
+      </div>
+      <div id="resetInfo" style="margin-top:10px; color:var(--muted); font-size:13px;"></div>
     </div>
   </div>
-</div>
 
-<!-- APP (hidden until login) -->
-<div id="app" class="app-wrap" style="display:none">
-  <div class="container" role="application" aria-label="Vehicle stock management">
-    <div class="h-row">
+  <!-- MAIN APP (hidden until login) -->
+  <div id="mainApp" class="container" style="display:none">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
       <div style="display:flex;gap:12px;align-items:center">
         <div class="badge">Vehicle Stock</div>
         <div>
@@ -100,98 +105,100 @@ tbody tr:hover{background:rgba(15,23,42,0.02);cursor:pointer}
         </div>
       </div>
 
-      <div style="display:flex;gap:8px;align-items:center">
-        <button class="action btn-primary" onclick="printReport()">Print</button>
+      <div style="display:flex;gap:10px;align-items:center">
+        <button class="action btn-primary" onclick="printReport()">Print Report</button>
         <button class="action btn-info" onclick="openFilter()">Filter</button>
         <button class="action btn-ghost" onclick="showDetails()">Show Details</button>
-        <button id="logoutBtn" class="action btn-danger" style="margin-left:12px" onclick="doLogout()">Logout</button>
+        <button class="action btn-danger" onclick="logout()">Logout</button>
       </div>
     </div>
 
     <!-- Form -->
-    <div class="form-grid" role="group" aria-label="vehicle inputs">
+    <div class="form-grid" role="group" aria-label="vehicle inputs" style="margin-top:14px;">
       <div class="field">
         <label for="vehId">Vehicle ID</label>
         <input id="vehId" type="text" placeholder="e.g. V-2025-001">
       </div>
 
       <div class="field">
-        <label for="make">Make</label>
-        <select id="make" onchange="onMakeChange()" size="1" style="cursor:pointer"></select>
-
-        <div id="manualMakeRow" class="manual-row" style="margin-top:8px">
-          <input id="manualMakeInput" type="text" placeholder="Enter make manually" />
-          <button class="action btn-success" onclick="addManualMake()">Add</button>
+        <label for="makeSelect">Make</label>
+        <select id="makeSelect" onchange="onMakeChange()" size="1" style="cursor:pointer">
+          <!-- populated dynamically -->
+        </select>
+        <div id="manualMakeRow" class="manual-row">
+          <input id="manualMakeInput" placeholder="Enter new Make (will be saved)">
+          <button class="action btn-success" onclick="saveManualMake()">Add</button>
         </div>
       </div>
 
       <div class="field">
-        <label for="model">Model</label>
-        <select id="model" size="1" style="cursor:pointer"></select>
+        <label for="modelSelect">Model</label>
+        <select id="modelSelect" size="1" style="cursor:pointer" onchange="onModelChange()">
+          <!-- populated dynamically -->
+        </select>
         <div id="manualModelRow" class="manual-row">
-          <input id="manualModelInput" type="text" placeholder="Enter model manually" />
-          <button class="action btn-success" onclick="addManualModel()">Add</button>
+          <input id="manualModelInput" placeholder="Enter new Model (will be saved)">
+          <button class="action btn-success" onclick="saveManualModel()">Add</button>
         </div>
       </div>
 
       <div class="field">
-        <label for="year">Year</label>
-        <input id="year" type="number" min="1900" max="2100" placeholder="e.g. 2020">
+        <label for="yearInput">Year</label>
+        <input id="yearInput" type="number" min="1900" max="2100" placeholder="e.g. 2020">
       </div>
 
       <div class="field">
-        <label for="chassis">Chassis No</label>
-        <input id="chassis" type="text" placeholder="Chassis number">
+        <label for="chassisInput">Chassis No</label>
+        <input id="chassisInput" type="text" placeholder="Chassis number">
       </div>
 
       <div class="field">
-        <label for="purchaseDate">Purchase Date</label>
-        <input id="purchaseDate" type="date">
+        <label for="purchaseDateInput">Purchase Date</label>
+        <input id="purchaseDateInput" type="date">
       </div>
 
       <div class="field">
-        <label for="purchasePrice">Purchase Price</label>
-        <input id="purchasePrice" type="number" min="0" step="0.01" placeholder="0.00">
+        <label for="purchasePriceInput">Purchase Price</label>
+        <input id="purchasePriceInput" type="number" min="0" step="0.01" placeholder="0.00">
       </div>
 
       <div class="field">
-        <label for="expense">Expense (repairs, fees)</label>
-        <input id="expense" type="number" min="0" step="0.01" placeholder="0.00">
+        <label for="expenseInput">Expense (repairs, fees)</label>
+        <input id="expenseInput" type="number" min="0" step="0.01" placeholder="0.00">
       </div>
 
-      <!-- SOLD PRICE (only visible when status == Sold) -->
+      <!-- sellingPrice removed per request; using soldPrice always visible -->
       <div class="field">
-        <label for="soldPrice">Sold Price</label>
-        <input id="soldPrice" type="number" min="0" step="0.01" placeholder="0.00">
-      </div>
-
-      <div class="field">
-        <label for="profit">Profit (auto)</label>
-        <input id="profit" type="text" readonly placeholder="Auto-calculated">
+        <label for="soldPriceInput">Sold Price</label>
+        <input id="soldPriceInput" type="text" placeholder="Enter sold price or mark as Free">
+        <label style="font-weight:600; margin-top:6px;">
+          <input id="soldFreeCheckbox" type="checkbox" onchange="onSoldFreeToggle()"> Free
+        </label>
       </div>
 
       <div class="field">
-        <label for="status">Status</label>
-        <select id="status">
+        <label for="soldDateInput">Sold Date</label>
+        <input id="soldDateInput" type="date">
+      </div>
+
+      <div class="field">
+        <label for="statusSelect">Status</label>
+        <select id="statusSelect" onchange="onStatusChange()">
           <option>Available</option>
           <option>Sold</option>
           <option>On Hold</option>
+          <option>Not Selling</option>
         </select>
       </div>
 
       <div class="field">
-        <label for="soldDate">Sold Date</label>
-        <input id="soldDate" type="date">
-      </div>
-
-      <div class="field">
-        <label for="notes">Notes</label>
-        <textarea id="notes" placeholder="Optional notes"></textarea>
+        <label for="notesInput">Notes</label>
+        <textarea id="notesInput" placeholder="Optional notes"></textarea>
       </div>
     </div>
 
     <!-- Actions -->
-    <div class="controls" role="group" aria-label="actions">
+    <div class="controls" role="group" aria-label="actions" style="margin-top:10px">
       <button class="action btn-primary" onclick="addVehicle()">Add Vehicle</button>
       <button class="action btn-ghost" onclick="clearForm()">Clear</button>
       <button class="action btn-success" onclick="updateVehicle()">Update</button>
@@ -200,18 +207,18 @@ tbody tr:hover{background:rgba(15,23,42,0.02);cursor:pointer}
       <div style="flex:1"></div>
 
       <div class="search-row">
-        <input id="searchText" type="text" placeholder="Search by ID, Make, Model, Chassis..." />
+        <input id="searchText" type="text" placeholder="Search by ID, Make, Model, Chassis..." oninput="searchVehicles()" />
         <button class="action btn-primary" onclick="searchVehicles()">Search</button>
         <button class="action btn-ghost" onclick="resetSearch()">Reset</button>
       </div>
     </div>
 
     <!-- Table -->
-    <div class="table-wrap" aria-live="polite">
+    <div class="table-wrap" aria-live="polite" style="margin-top:10px;">
       <table id="vehiclesTable" role="grid" aria-label="vehicle table">
         <thead>
           <tr>
-            <th>ID</th><th>Make</th><th>Model</th><th>Year</th><th>Chassis</th><th>Purchase</th><th>Expense</th><th>Sold Price</th><th>Profit</th><th>Status</th>
+            <th>ID</th><th>Make</th><th>Model</th><th>Year</th><th>Chassis</th><th>Purchase</th><th>Expense</th><th>Sold</th><th>Sold Date</th><th>Status</th>
           </tr>
         </thead>
         <tbody></tbody>
@@ -228,21 +235,19 @@ tbody tr:hover{background:rgba(15,23,42,0.02);cursor:pointer}
   </div>
 </div>
 
-<!-- overlay modal -->
+<!-- overlay modal (for filter/details) -->
 <div id="overlay" class="overlay" role="dialog" aria-modal="true">
   <div class="modal" id="modalContent" role="document"></div>
 </div>
 
-<!-- Hidden print template area (used to generate the print window content) -->
+<!-- Hidden print template -->
 <div id="printTemplate" style="display:none">
   <div style="font-family:Arial, Helvetica, sans-serif; padding:20px; color:#111;">
-    <div id="letterHead" style="text-align:center; border-bottom:2px solid #222; padding-bottom:12px; margin-bottom:12px;">
+    <div style="text-align:center; border-bottom:2px solid #222; padding-bottom:12px; margin-bottom:12px;">
       <div style="font-size:20px; font-weight:800;">Season Enterprises</div>
       <div style="font-size:13px; color:#333; margin-top:6px;">Japan • Phone: 090-6010-5544 • Email: Seasonemterprise2014@gmail.com</div>
     </div>
-
     <div id="printBody"></div>
-
     <div style="margin-top:20px; font-size:12px; color:#444;">
       <div>Prepared on: <span id="printDate"></span></div>
     </div>
@@ -250,341 +255,245 @@ tbody tr:hover{background:rgba(15,23,42,0.02);cursor:pointer}
 </div>
 
 <script>
-/* ===========================
-   App configuration & state
-   =========================== */
-const STORAGE_KEY = "vehicle_stock_records_v1";
-const MAKES_KEY = "vehicle_makes_v1";
-const SESSION_KEY = "vehicle_app_session_v1";
+/* ===== CONFIG ===== */
+const DEFAULT_ADMIN_USER = "admin";
+const DEFAULT_ADMIN_PASS = "admin";
+const COMPANY_EMAIL = "Seasonemterprise2014@gmail.com";
+const STORAGE_MAKES_KEY = "season_makes_v1";
+const STORAGE_MODELS_KEY = "season_models_v1";
+const STORAGE_VEHICLES_KEY = "season_vehicles_v1";
+const STORAGE_AUTH_KEY = "season_auth_v1"; // persisted password (optional)
 
-/* Default makes and models (initial) */
-const defaultModelData = {
-  Toyota: ["Aqua","Prius","Vitz","Hiace","Corolla","Crown","Rav4","Land Cruiser","Harrier","Alphard","Vellfire","Fortuner"],
-  Nissan: ["Note","Leaf","Serena","X-Trail","Skyline","NV350","Caravan","Elgrand"],
-  Honda: ["Fit","Vezel","N-Box","Civic","Stepwgn","Odyssey"],
-  Mitsubishi: ["Delica","Pajero","Outlander"],
-  Mazda: ["Demio","Axela","CX-5","Bongo"],
-  Suzuki: ["Alto","Swift","Jimny"],
-  Subaru: ["Impreza","Forester","Levorg"],
-  Daihatsu: ["Mira","Hijet","Thor"],
-  Isuzu: ["Elf","D-MAX"],
-  Hino: ["Dutro","Profia"],
-  Ford: ["Ranger","Fiesta"],
-  Chevrolet: ["Tavera","Impala"]
-};
-
-/* Load persistent makes/models or use defaults */
-let modelData = JSON.parse(localStorage.getItem(MAKES_KEY) || "null") || defaultModelData;
-
-/* Vehicles */
-let vehicles = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null") || [
-  { id:"V001", make:"Toyota", model:"Hiace", year:2018, chassis:"CHS001", purchaseDate:"2019-02-15", purchase:2000000, expense:150000, soldPrice:0, soldDate:"", profit:(0-(2000000+150000)), status:"Available", notes:"Good condition" },
-  { id:"V002", make:"Nissan", model:"Caravan", year:2016, chassis:"CHS002", purchaseDate:"2017-06-10", purchase:1800000, expense:100000, soldPrice:2200000, soldDate:"2025-10-01", profit:(2200000-(1800000+100000)), status:"Sold", notes:"Sold last month" }
+/* ===== State ===== */
+let vehicles = JSON.parse(localStorage.getItem(STORAGE_VEHICLES_KEY) || "null") || [
+  // sample items (optional)
+  { id:"V001", make:"Toyota", model:"Hiace", year:2018, chassis:"CHS001", purchaseDate:"2019-02-15", purchase:2000000, expense:150000, sold: "", soldDate:"", status:"Available", notes:"Good condition" }
 ];
-
-/* session (simple) */
-const session = JSON.parse(localStorage.getItem(SESSION_KEY) || "null");
-
-/* Selected index for edit */
 let selectedIndex = -1;
 
-/* DOM nodes */
-const loginScreen = document.getElementById("loginScreen");
-const appWrap = document.getElementById("app");
-const loginUser = document.getElementById("loginUser");
-const loginPass = document.getElementById("loginPass");
+/* Make / model lists persisted */
+let makes = JSON.parse(localStorage.getItem(STORAGE_MAKES_KEY) || "null") || ["Toyota","Nissan","Honda","Mitsubishi","Mazda","Suzuki","Subaru","Daihatsu","Isuzu","Hino","Ford","Chevrolet","Other"];
+let models = JSON.parse(localStorage.getItem(STORAGE_MODELS_KEY) || "null") || ["Hiace","Aqua","Vitz","Caravan","Prius","Corolla","Civic","Other"];
 
+/* Persisted admin password support */
+let persistedAuth = JSON.parse(localStorage.getItem(STORAGE_AUTH_KEY) || "null") || { user: DEFAULT_ADMIN_USER, pass: DEFAULT_ADMIN_PASS };
+
+/* DOM refs (for convenience) */
+const loginScreen = document.getElementById("loginScreen");
+const forgotCard = document.getElementById("forgotCard");
+const mainApp = document.getElementById("mainApp");
 const tbody = document.querySelector("#vehiclesTable tbody");
 const vehId = document.getElementById("vehId");
-const make = document.getElementById("make");
-const model = document.getElementById("model");
-const year = document.getElementById("year");
-const chassis = document.getElementById("chassis");
-const purchaseDate = document.getElementById("purchaseDate");
-const purchasePrice = document.getElementById("purchasePrice");
-const expense = document.getElementById("expense");
-const soldPrice = document.getElementById("soldPrice");
-const profit = document.getElementById("profit");
-const status = document.getElementById("status");
-const soldDate = document.getElementById("soldDate");
-const notes = document.getElementById("notes");
-const totalVehicles = document.getElementById("totalVehicles");
-const totalProfit = document.getElementById("totalProfit");
-const totalExpense = document.getElementById("totalExpense");
-const overlay = document.getElementById("overlay");
-const modalContent = document.getElementById("modalContent");
+const makeSelect = document.getElementById("makeSelect");
+const modelSelect = document.getElementById("modelSelect");
+const yearInput = document.getElementById("yearInput");
+const chassisInput = document.getElementById("chassisInput");
+const purchaseDateInput = document.getElementById("purchaseDateInput");
+const purchasePriceInput = document.getElementById("purchasePriceInput");
+const expenseInput = document.getElementById("expenseInput");
+const soldPriceInput = document.getElementById("soldPriceInput");
+const soldDateInput = document.getElementById("soldDateInput");
+const soldFreeCheckbox = document.getElementById("soldFreeCheckbox");
+const statusSelect = document.getElementById("statusSelect");
+const notesInput = document.getElementById("notesInput");
+const totalVehiclesEl = document.getElementById("totalVehicles");
+const totalProfitEl = document.getElementById("totalProfit");
+const totalExpenseEl = document.getElementById("totalExpense");
 const searchText = document.getElementById("searchText");
-const manualModelRow = document.getElementById("manualModelRow");
-const manualModelInput = document.getElementById("manualModelInput");
-const manualMakeRow = document.getElementById("manualMakeRow");
-const manualMakeInput = document.getElementById("manualMakeInput");
 
-/* ===========================
-   Authentication (very simple)
-   username: admin
-   password: admin
-   =========================== */
-function showLogin(){
-  loginScreen.style.display = "flex";
-  appWrap.style.display = "none";
+/* ===== Helper: save lists ===== */
+function saveLists() {
+  localStorage.setItem(STORAGE_MAKES_KEY, JSON.stringify(makes));
+  localStorage.setItem(STORAGE_MODELS_KEY, JSON.stringify(models));
 }
-function showApp(){
-  loginScreen.style.display = "none";
-  appWrap.style.display = "flex";
-  populateMakeSelect();
-  renderTable();
-  applyStatusVisibility();
+function saveVehicles() {
+  localStorage.setItem(STORAGE_VEHICLES_KEY, JSON.stringify(vehicles));
 }
 
-/* Called when page loads: check session */
-window.addEventListener("DOMContentLoaded", () => {
-  const sess = JSON.parse(localStorage.getItem(SESSION_KEY) || "null");
-  if(sess && sess.user === "admin" && sess.authenticated){
-    showApp();
-  } else {
-    showLogin();
-  }
-});
-
-/* login action */
-function doLogin(){
+/* ===== LOGIN / AUTH ===== */
+function attemptLogin() {
   const user = (document.getElementById("loginUser").value || "").trim();
   const pass = (document.getElementById("loginPass").value || "").trim();
-  if(user === "admin" && pass === "admin"){
-    localStorage.setItem(SESSION_KEY, JSON.stringify({ user:"admin", authenticated:true, time:Date.now() }));
-    showApp();
+
+  // fall back to default admin if not persisted
+  const authUser = persistedAuth.user || DEFAULT_ADMIN_USER;
+  const authPass = persistedAuth.pass || DEFAULT_ADMIN_PASS;
+
+  if(user === authUser && pass === authPass) {
+    // show app
+    loginScreen.style.display = "none";
+    mainApp.style.display = "block";
+    renderEverything();
   } else {
-    alert("Invalid credentials. Try admin / admin.");
+    alert("Invalid credentials. Username/Password are case-sensitive.");
   }
 }
 
-/* quick helper to fill login fields (demo) */
-function fillDemo(){ document.getElementById("loginUser").value="admin"; document.getElementById("loginPass").value="admin"; }
-
-/* logout */
-function doLogout(){
-  if(confirm("Logout?")){
-    localStorage.removeItem(SESSION_KEY);
-    location.reload();
-  }
+function logout() {
+  // clear sensitive inputs and go back to login screen
+  document.getElementById("loginPass").value = "";
+  document.getElementById("loginUser").value = "";
+  mainApp.style.display = "none";
+  loginScreen.style.display = "block";
+  hideForgot();
 }
 
-/* ===========================
-   Make / Model handling
-   - persist make/model updates in localStorage (MAKES_KEY)
-   - allow adding new make and model permanently
-   =========================== */
-function populateMakeSelect(){
-  // Shows Current makes + "Other"
-  make.innerHTML = "";
-  const defaultOpt = document.createElement("option");
-  defaultOpt.value = "";
-  defaultOpt.textContent = "-- Select Make --";
-  make.appendChild(defaultOpt);
-  Object.keys(modelData).forEach(mk => {
+/* ===== FORGOT PASSWORD ===== */
+function showForgot() {
+  forgotCard.style.display = "block";
+}
+function hideForgot() {
+  forgotCard.style.display = "none";
+  document.getElementById("resetEmail").value = "";
+  document.getElementById("resetInfo").textContent = "";
+}
+
+function tryResetEmail() {
+  const email = (document.getElementById("resetEmail").value || "").trim().toLowerCase();
+  const info = document.getElementById("resetInfo");
+  if(!email) { info.textContent = "Please enter your email."; return; }
+  if(email !== COMPANY_EMAIL.toLowerCase()) {
+    info.textContent = "Email not recognized.";
+    return;
+  }
+
+  // show new password prompt inline (no real email sent) - per your choice (option 2B)
+  const newPass = prompt("Enter new password for the admin account:");
+  if(newPass === null) { info.textContent = "Reset cancelled."; return; }
+  if(newPass.trim().length < 1) { info.textContent = "Password cannot be empty."; return; }
+
+  // persist new password
+  persistedAuth = { user: DEFAULT_ADMIN_USER, pass: newPass };
+  localStorage.setItem(STORAGE_AUTH_KEY, JSON.stringify(persistedAuth));
+  info.textContent = "Password updated. Use username '" + persistedAuth.user + "' and your new password to login.";
+}
+
+/* ===== Make / Model handling (persist manual adds) ===== */
+function populateMakeModelDropdowns() {
+  makeSelect.innerHTML = "";
+  makes.forEach(mk => {
     const opt = document.createElement("option");
     opt.value = mk;
     opt.textContent = mk;
-    make.appendChild(opt);
+    makeSelect.appendChild(opt);
   });
-  const otherOpt = document.createElement("option");
-  otherOpt.value = "Other";
-  otherOpt.textContent = "Other";
-  make.appendChild(otherOpt);
+  // ensure 'Other' present
+  if(!makes.includes("Other")) {
+    makes.push("Other");
+    saveLists();
+    populateMakeModelDropdowns();
+    return;
+  }
+
+  populateModelsFor(makeSelect.value || makes[0]);
 }
 
-function onMakeChange(){
-  const mk = make.value;
-  populateModelsFor(mk);
-  if(mk === "Other"){
-    manualMakeRow.style.display = "flex";
+function onMakeChange() {
+  const mk = makeSelect.value;
+  if(mk === "Other") {
+    document.getElementById("manualMakeRow").style.display = "flex";
   } else {
-    manualMakeRow.style.display = "none";
+    document.getElementById("manualMakeRow").style.display = "none";
   }
+  populateModelsFor(mk);
 }
 
-function populateModelsFor(makeName){
-  model.innerHTML = "";
-  const defaultOpt = document.createElement("option");
-  defaultOpt.value = "";
-  defaultOpt.textContent = "-- Select Model --";
-  model.appendChild(defaultOpt);
-
-  if(!makeName || makeName === ""){
-    manualModelRow.style.display = "none";
-    return;
-  }
-  if(makeName === "Other"){
-    // show a manual add for make first
-    manualModelRow.style.display = "none";
-    return;
-  }
-  const models = modelData[makeName] || [];
-  models.forEach(m => {
+function populateModelsFor(makeName) {
+  modelSelect.innerHTML = "";
+  let localList = [];
+  // if we had a model mapping per make, we could filter; for now we keep a global models list and ensure 'Other'
+  if(Array.isArray(models)) localList = models.slice();
+  if(!localList.includes("Other")) localList.push("Other");
+  localList.forEach(md => {
     const opt = document.createElement("option");
-    opt.value = m;
-    opt.textContent = m;
-    model.appendChild(opt);
+    opt.value = md;
+    opt.textContent = md;
+    modelSelect.appendChild(opt);
   });
-  const otherOpt = document.createElement("option");
-  otherOpt.value = "Other";
-  otherOpt.textContent = "Other";
-  model.appendChild(otherOpt);
-  manualModelRow.style.display = "none";
+  // if make has a default model mapping (optional)
+  // show manual entry row if selected 'Other'
+  onModelChange();
 }
 
-function addManualMake(){
-  const txt = manualMakeInput.value.trim();
-  if(!txt) return alert("Enter a make name to add.");
-  if(modelData[txt]) return alert("Make already exists.");
-  modelData[txt] = [];
-  // persist to localStorage
-  localStorage.setItem(MAKES_KEY, JSON.stringify(modelData));
-  populateMakeSelect();
-  make.value = txt;
-  manualMakeInput.value = "";
-  manualMakeRow.style.display = "none";
-  populateModelsFor(txt);
-}
-
-function addManualModel(){
-  const txt = manualModelInput.value.trim();
-  const mk = make.value;
-  if(!mk || mk === "" || mk === "Other") return alert("Select a make first (or add a new make).");
-  if(!txt) return alert("Enter the model name to add.");
-  if(!modelData[mk]) modelData[mk] = [];
-  modelData[mk].push(txt);
-  localStorage.setItem(MAKES_KEY, JSON.stringify(modelData));
-  populateModelsFor(mk);
-  model.value = txt;
-  manualModelInput.value = "";
-  manualModelRow.style.display = "none";
-}
-
-/* model change: show manual model row if 'Other' */
-model.addEventListener("change", function(){
-  const val = model.value;
-  if(val === "Other"){
-    manualModelRow.style.display = "flex";
+function onModelChange() {
+  const val = modelSelect.value;
+  if(val === "Other") {
+    document.getElementById("manualModelRow").style.display = "flex";
   } else {
-    manualModelRow.style.display = "none";
+    document.getElementById("manualModelRow").style.display = "none";
   }
-});
+}
+function saveManualMake() {
+  const input = document.getElementById("manualMakeInput");
+  const v = (input.value || "").trim();
+  if(!v) { alert("Enter the make name."); return; }
+  if(!makes.includes(v)) makes.unshift(v);
+  saveLists();
+  input.value = "";
+  document.getElementById("manualMakeRow").style.display = "none";
+  populateMakeModelDropdowns();
+  makeSelect.value = v;
+  populateModelsFor(v);
+}
+function saveManualModel() {
+  const input = document.getElementById("manualModelInput");
+  const v = (input.value || "").trim();
+  if(!v) { alert("Enter the model name."); return; }
+  if(!models.includes(v)) models.unshift(v);
+  saveLists();
+  input.value = "";
+  document.getElementById("manualModelRow").style.display = "none";
+  populateModelsFor(makeSelect.value);
+  modelSelect.value = v;
+}
 
-/* ===========================
-   Profit calculation and status toggles
-   =========================== */
-[purchasePrice, expense, soldPrice].forEach(el => el && el.addEventListener("input", updateProfitField));
-status.addEventListener("change", applyStatusVisibility);
-
-function updateProfitField(){
-  const p = Number(purchasePrice.value) || 0;
-  const e = Number(expense.value) || 0;
-  const s = Number(soldPrice.value) || 0;
-  // profit only meaningful when soldPrice exists and status is Sold
-  if(status.value === "Sold" && s > 0){
-    const prof = s - (p + e);
-    profit.value = isNaN(prof) ? "" : prof.toFixed(2);
+/* ===== sold Free toggle (checkbox) ===== */
+function onSoldFreeToggle() {
+  const box = soldFreeCheckbox.checked;
+  if(box) {
+    soldPriceInput.value = "Free";
+    soldPriceInput.disabled = true;
   } else {
-    profit.value = "";
+    soldPriceInput.disabled = false;
+    if(soldPriceInput.value === "Free") soldPriceInput.value = "";
   }
 }
 
-function applyStatusVisibility(){
-  const st = status.value;
-  const soldInputs = [document.getElementById('soldPrice'), document.getElementById('soldDate')];
-  if(st === "Sold"){
-    soldInputs.forEach(i => i.parentElement.style.display = "block");
-  } else {
-    soldInputs.forEach(i => i.parentElement.style.display = "none");
-    soldPrice.value = "";
-    soldDate.value = "";
-    profit.value = "";
-  }
+/* ===== FORM UTIL ===== */
+function updateProfitField() {
+  const p = Number(purchasePriceInput.value) || 0;
+  const e = Number(expenseInput.value) || 0;
+  // profit = sold - (purchase + expense) if sold numeric
+  const soldVal = parseFloat(String(soldPriceInput.value).replace(/,/g,'')) || 0;
+  const prof = soldVal - (p + e);
+  totalProfitEl.textContent = `Total Profit: ${Number(prof || 0).toFixed(2)}`;
 }
 
-/* ===========================
-   Table render / CRUD
-   =========================== */
-function escapeHTML(s){ return String(s).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;"); }
-
-function renderTable(list = vehicles){
-  tbody.innerHTML = "";
-  list.forEach((v, idx) => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${escapeHTML(v.id)}</td>
-      <td>${escapeHTML(v.make)}</td>
-      <td>${escapeHTML(v.model)}</td>
-      <td>${escapeHTML(String(v.year || ''))}</td>
-      <td>${escapeHTML(v.chassis || '')}</td>
-      <td style="text-align:right">${escapeHTML(Number(v.purchase || 0).toFixed(2))}</td>
-      <td style="text-align:right">${escapeHTML(Number(v.expense || 0).toFixed(2))}</td>
-      <td style="text-align:right">${escapeHTML(Number(v.soldPrice || 0).toFixed(2))}</td>
-      <td style="text-align:right">${escapeHTML(Number(v.profit || 0).toFixed(2))}</td>
-      <td>${escapeHTML(v.status || '')}</td>
-    `;
-    tr.addEventListener("click", ()=> selectRow(idx, tr));
-    tbody.appendChild(tr);
-  });
-  updateStats(list);
-  saveStorage();
-}
-
-function selectRow(idx, trElem){
-  [...tbody.children].forEach(tr=>tr.classList.remove("selected"));
-  trElem.classList.add("selected");
-  selectedIndex = idx;
-  const v = vehicles[idx];
-  vehId.value = v.id || "";
-  make.value = v.make || "";
-  populateModelsFor(make.value);
-  model.value = v.model || "";
-  year.value = v.year || "";
-  chassis.value = v.chassis || "";
-  purchaseDate.value = v.purchaseDate || "";
-  purchasePrice.value = v.purchase || "";
-  expense.value = v.expense || "";
-  soldPrice.value = v.soldPrice || "";
-  soldDate.value = v.soldDate || "";
-  profit.value = (typeof v.profit !== 'undefined') ? Number(v.profit).toFixed(2) : "";
-  status.value = v.status || "Available";
-  notes.value = v.notes || "";
-  applyStatusVisibility();
-}
-
-/* gather values and validate */
-function gatherForm(){
+/* gather & validate */
+function gatherForm() {
   const idVal = (vehId.value || "").trim();
-  const makeVal = (make.value || "").trim();
-  let modelVal = (model.value || "").trim();
-  if(modelVal === "Other"){
-    // check manual model input
-    const mm = (manualModelInput.value || "").trim();
+  const makeVal = (makeSelect.value || "").trim();
+  let modelVal = (modelSelect.value || "").trim();
+  if(modelVal.toLowerCase().includes("other")) {
+    const mm = (document.getElementById("manualModelInput").value || "").trim();
     if(mm) modelVal = mm;
   }
-  const yearVal = Number(year.value) || 0;
-  const chassisVal = (chassis.value || "").trim();
-  const pDate = purchaseDate.value || "";
-  const pPrice = Number(purchasePrice.value) || 0;
-  const expVal = Number(expense.value) || 0;
-  const soldVal = Number(soldPrice.value) || 0;
-  const soldDt = soldDate.value || "";
-  const stat = status.value || "Available";
-  const notesVal = (notes.value || "").trim();
+  const yearVal = Number(yearInput.value) || 0;
+  const chassisVal = (chassisInput.value || "").trim();
+  const pDate = purchaseDateInput.value;
+  const pPrice = Number(purchasePriceInput.value) || 0;
+  const expVal = Number(expenseInput.value) || 0;
+  let soldVal = (soldPriceInput.value || "").trim();
+  if(soldFreeCheckbox.checked) soldVal = "Free";
+  const soldDate = soldDateInput.value || "";
+  const stat = statusSelect.value;
+  const notesVal = (notesInput.value || "").trim();
 
-  // Basic validation
-  if(!idVal || !makeVal || !modelVal || !pDate || isNaN(pPrice)){
-    alert("Please fill ID, Make, Model, Purchase Date and Purchase Price.");
+  if(!idVal || !makeVal || !modelVal || !pDate) {
+    alert("Please fill ID, Make, Model and Purchase Date.");
     return null;
   }
-  if(stat === "Sold" && (isNaN(soldVal) || soldVal <= 0 || !soldDt)){
-    alert("For Sold status you must provide Sold Price and Sold Date.");
-    return null;
-  }
-
-  // profit: only when sold
-  const prof = (stat === "Sold") ? (soldVal - (pPrice + expVal)) : 0;
+  // sold value may be "Free" or numeric; leave as-is
   return {
     id:idVal,
     make:makeVal,
@@ -594,114 +503,168 @@ function gatherForm(){
     purchaseDate:pDate,
     purchase:pPrice,
     expense:expVal,
-    soldPrice:soldVal,
-    soldDate:soldDt,
-    profit:prof,
+    sold:soldVal,
+    soldDate:soldDate,
     status:stat,
-    notes:notesVal
+    notes:notesVal,
+    profit: (isNaN(Number(soldVal)) ? 0 : Number(soldVal) - (pPrice + expVal))
   };
 }
 
-function addVehicle(){
+/* ===== CRUD ===== */
+function clearForm() {
+  vehId.value = "";
+  makeSelect.selectedIndex = 0;
+  populateModelsFor(makeSelect.value);
+  modelSelect.selectedIndex = 0;
+  yearInput.value = "";
+  chassisInput.value = "";
+  purchaseDateInput.value = "";
+  purchasePriceInput.value = "";
+  expenseInput.value = "";
+  soldPriceInput.value = "";
+  soldDateInput.value = "";
+  soldFreeCheckbox.checked = false;
+  soldPriceInput.disabled = false;
+  statusSelect.value = "Available";
+  notesInput.value = "";
+  selectedIndex = -1;
+  [...tbody.children].forEach(tr => tr.classList.remove("selected"));
+  renderTable();
+}
+
+function addVehicle() {
   const v = gatherForm();
   if(!v) return;
   vehicles.push(v);
+  saveVehicles();
   clearForm();
   renderTable();
+  alert("Vehicle added.");
 }
 
-function updateVehicle(){
-  if(selectedIndex < 0 || selectedIndex >= vehicles.length){ alert("Select a record to update."); return; }
+function updateVehicle() {
+  if(selectedIndex < 0 || selectedIndex >= vehicles.length) {
+    alert("Select a record to update.");
+    return;
+  }
   const v = gatherForm();
   if(!v) return;
   vehicles[selectedIndex] = v;
+  saveVehicles();
   selectedIndex = -1;
   clearForm();
   renderTable();
+  alert("Vehicle updated.");
 }
 
-function deleteVehicle(){
-  if(selectedIndex < 0 || selectedIndex >= vehicles.length){ alert("Select a record to delete."); return; }
+function deleteVehicle() {
+  if(selectedIndex < 0 || selectedIndex >= vehicles.length) {
+    alert("Select a record to delete.");
+    return;
+  }
   if(!confirm("Delete this vehicle?")) return;
-  vehicles.splice(selectedIndex,1);
+  vehicles.splice(selectedIndex, 1);
+  saveVehicles();
   selectedIndex = -1;
   clearForm();
   renderTable();
 }
 
-function clearForm(){
-  vehId.value = "";
-  make.value = "";
-  model.innerHTML = '<option value="">-- Select Model --</option>';
-  year.value = "";
-  chassis.value = "";
-  purchaseDate.value = "";
-  purchasePrice.value = "";
-  expense.value = "";
-  soldPrice.value = "";
-  soldDate.value = "";
-  profit.value = "";
-  status.value = "Available";
-  notes.value = "";
-  manualModelInput.value = "";
-  manualMakeInput.value = "";
-  manualModelRow.style.display = "none";
-  manualMakeRow.style.display = "none";
-  selectedIndex = -1;
+/* ===== RENDER TABLE / SELECT ===== */
+function renderTable(list = vehicles) {
+  tbody.innerHTML = "";
+  list.forEach((v, idx) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${escapeHTML(v.id)}</td>
+      <td>${escapeHTML(v.make)}</td>
+      <td>${escapeHTML(v.model)}</td>
+      <td>${escapeHTML(String(v.year))}</td>
+      <td>${escapeHTML(v.chassis)}</td>
+      <td style="text-align:right;">${escapeHTML(Number(v.purchase || 0).toFixed(2))}</td>
+      <td style="text-align:right;">${escapeHTML(Number(v.expense || 0).toFixed(2))}</td>
+      <td>${escapeHTML(String(v.sold || ""))}</td>
+      <td>${escapeHTML(String(v.soldDate || ""))}</td>
+      <td>${escapeHTML(v.status)}</td>
+    `;
+    tr.addEventListener("click", ()=> selectRow(idx, tr));
+    tbody.appendChild(tr);
+  });
+  updateStats(list);
+}
+
+function selectRow(idx, trElem) {
   [...tbody.children].forEach(tr=>tr.classList.remove("selected"));
+  trElem.classList.add("selected");
+  selectedIndex = idx;
+  const v = vehicles[idx];
+  vehId.value = v.id;
+  makeSelect.value = v.make;
+  populateModelsFor(v.make);
+  // if model not in list add temporarily so it selects
+  if(!models.includes(v.model)) {
+    models.unshift(v.model);
+    saveLists();
+    populateModelsFor(v.make);
+  }
+  modelSelect.value = v.model;
+  yearInput.value = v.year || "";
+  chassisInput.value = v.chassis || "";
+  purchaseDateInput.value = v.purchaseDate || "";
+  purchasePriceInput.value = v.purchase || "";
+  expenseInput.value = v.expense || "";
+  soldPriceInput.value = v.sold || "";
+  soldDateInput.value = v.soldDate || "";
+  soldFreeCheckbox.checked = (v.sold === "Free");
+  if(soldFreeCheckbox.checked) soldPriceInput.disabled = true; else soldPriceInput.disabled = false;
+  statusSelect.value = v.status || "Available";
+  notesInput.value = v.notes || "";
+  updateProfitField();
 }
 
-/* search */
-function searchVehicles(){
-  const q = (searchText.value || "").trim().toLowerCase();
-  if(!q){ renderTable(); return; }
-  const res = vehicles.filter(v => (v.id + " " + v.make + " " + v.model + " " + v.chassis).toLowerCase().includes(q));
-  renderTable(res);
-}
-function resetSearch(){ searchText.value=""; renderTable(); }
-
-/* stats */
-function updateStats(list){
+/* ===== Stats & search ===== */
+function updateStats(list) {
   const total = list.length;
   const totalExp = list.reduce((s,v)=>s + Number(v.expense || 0), 0);
-  const totalProf = list.reduce((s,v)=>s + Number(v.profit || 0), 0);
-  totalVehicles.textContent = `Total Vehicles: ${total}`;
-  totalExpense.textContent = `Total Expense: ${totalExp.toFixed(2)}`;
-  totalProfit.textContent = `Total Profit: ${totalProf.toFixed(2)}`;
+  // totalProfit = sum of (sold - (purchase+expense)) for numeric sold values
+  const totalProf = list.reduce((s,v)=>{
+    const soldNum = parseFloat(String(v.sold).replace(/,/g,''));
+    if(isNaN(soldNum)) return s;
+    return s + (soldNum - (Number(v.purchase||0) + Number(v.expense||0)));
+  },0);
+  totalVehiclesEl.textContent = `Total Vehicles: ${total}`;
+  totalExpenseEl.textContent = `Total Expense: ${totalExp.toFixed(2)}`;
+  totalProfitEl.textContent = `Total Profit: ${totalProf.toFixed(2)}`;
 }
 
-/* Storage */
-function saveStorage(){
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(vehicles));
-  localStorage.setItem(MAKES_KEY, JSON.stringify(modelData));
+function searchVehicles() {
+  const q = (searchText.value || "").trim().toLowerCase();
+  if(!q) { renderTable(vehicles); return; }
+  const res = vehicles.filter(v => {
+    return (v.id + " " + v.make + " " + v.model + " " + v.chassis + " " + String(v.sold || "")).toLowerCase().includes(q);
+  });
+  renderTable(res);
 }
+function resetSearch() { searchText.value = ""; renderTable(vehicles); }
 
-/* ===========================
-   Filter modal
-   =========================== */
-function openFilter(){
+/* ===== Filter modal ===== */
+function openFilter() {
   overlay.style.display = "flex";
   modalContent.innerHTML = `
     <h3>Filter</h3>
     <div class="small">Choose filters (leave blank for any)</div>
     <div style="margin-bottom:8px">
-      <label style="font-weight:600;margin-bottom:6px;display:block">Status</label>
-      <select id="fStatus" style="width:100%;padding:8px;border-radius:6px;margin-bottom:8px"><option value="">--Any--</option><option>Available</option><option>Sold</option><option>On Hold</option></select>
+      <label style="font-weight:600">Status</label>
+      <select id="fStatus" style="width:100%;padding:8px;border-radius:6px;margin-bottom:8px"><option value="">--Any--</option><option>Available</option><option>Sold</option><option>On Hold</option><option>Not Selling</option></select>
     </div>
     <div style="margin-bottom:8px">
-      <label style="font-weight:600;margin-bottom:6px;display:block">Make</label>
-      <input id="fMake" type="text" placeholder="e.g. Toyota" style="width:100%;padding:8px;border-radius:6px"/>
+      <label style="font-weight:600">Make</label>
+      <input id="fMake" type="text" style="width:100%;padding:8px;border-radius:6px" placeholder="e.g. Toyota">
     </div>
     <div style="margin-bottom:8px">
-      <label style="font-weight:600;margin-bottom:6px;display:block">Year</label>
-      <input id="fYear" type="number" placeholder="e.g. 2020" style="width:100%;padding:8px;border-radius:6px"/>
-    </div>
-    <div style="margin-bottom:8px">
-      <label style="font-weight:600;margin-bottom:6px;display:block">Sold Price between</label>
-      <div style="display:flex;gap:6px">
-        <input id="fMin" type="number" placeholder="min" style="flex:1;padding:8px;border-radius:6px"/>
-        <input id="fMax" type="number" placeholder="max" style="flex:1;padding:8px;border-radius:6px"/>
-      </div>
+      <label style="font-weight:600">Year</label>
+      <input id="fYear" type="number" style="width:100%;padding:8px;border-radius:6px" placeholder="e.g. 2020">
     </div>
     <div style="display:flex;gap:8px;justify-content:flex-end">
       <button class="action btn-success" onclick="applyFilter()">Apply</button>
@@ -709,30 +672,27 @@ function openFilter(){
     </div>
   `;
 }
-
-function applyFilter(){
+function applyFilter() {
   const s = document.getElementById("fStatus").value;
-  const fm = document.getElementById("fMake").value.trim().toLowerCase();
+  const fm = (document.getElementById("fMake").value || "").trim().toLowerCase();
   const fy = document.getElementById("fYear").value;
-  const mn = document.getElementById("fMin").value;
-  const mx = document.getElementById("fMax").value;
   const filtered = vehicles.filter(v=>{
     if(s && v.status !== s) return false;
     if(fm && !v.make.toLowerCase().includes(fm)) return false;
     if(fy && Number(v.year) !== Number(fy)) return false;
-    if(mn && Number(v.soldPrice || 0) < Number(mn)) return false;
-    if(mx && Number(v.soldPrice || 0) > Number(mx)) return false;
     return true;
   });
   closeModal();
   renderTable(filtered);
 }
+function closeModal() { overlay.style.display = "none"; modalContent.innerHTML = ""; }
 
-function closeModal(){ overlay.style.display="none"; modalContent.innerHTML=""; }
-
-/* show details */
-function showDetails(){
-  if(selectedIndex < 0 || selectedIndex >= vehicles.length){ alert("Select a vehicle row first."); return; }
+/* ===== Show details modal ===== */
+function showDetails() {
+  if(selectedIndex < 0 || selectedIndex >= vehicles.length) {
+    alert("Select a vehicle row first.");
+    return;
+  }
   const v = vehicles[selectedIndex];
   overlay.style.display = "flex";
   modalContent.innerHTML = `
@@ -745,9 +705,8 @@ function showDetails(){
     <div style="margin-bottom:8px"><strong>Purchase Date:</strong> ${escapeHTML(v.purchaseDate)}</div>
     <div style="margin-bottom:8px"><strong>Purchase:</strong> ${Number(v.purchase).toFixed(2)}</div>
     <div style="margin-bottom:8px"><strong>Expense:</strong> ${Number(v.expense).toFixed(2)}</div>
-    <div style="margin-bottom:8px"><strong>Sold Price:</strong> ${Number(v.soldPrice || 0).toFixed(2)}</div>
-    <div style="margin-bottom:8px"><strong>Sold Date:</strong> ${escapeHTML(v.soldDate || '')}</div>
-    <div style="margin-bottom:8px"><strong>Profit:</strong> ${Number(v.profit || 0).toFixed(2)}</div>
+    <div style="margin-bottom:8px"><strong>Sold:</strong> ${escapeHTML(String(v.sold || ''))}</div>
+    <div style="margin-bottom:8px"><strong>Sold Date:</strong> ${escapeHTML(String(v.soldDate || ''))}</div>
     <div style="margin-bottom:8px"><strong>Status:</strong> ${escapeHTML(v.status)}</div>
     <div style="margin-bottom:8px"><strong>Notes:</strong> ${escapeHTML(v.notes||'')}</div>
     <div style="display:flex;gap:8px;justify-content:flex-end">
@@ -756,25 +715,15 @@ function showDetails(){
   `;
 }
 
-/* ===========================
-   Print: letterhead + visible rows or selected row
-   =========================== */
-function printReport(){
-  // Use selected row if available else current visible rows
-  const selected = (selectedIndex >= 0 && selectedIndex < vehicles.length) ? [vehicles[selectedIndex]] : null;
-  const visibleRows = [...tbody.children].map(tr => {
+/* ===== Print (letterhead only) ===== */
+function printReport() {
+  // If a row selected -> print that one, else print visible rows
+  const selected = (selectedIndex >=0 && selectedIndex < vehicles.length) ? [vehicles[selectedIndex]] : null;
+  // current visible rows from table DOM
+  const visibleRows = [...tbody.children].map(tr=>{
     const cells = [...tr.children].map(td => td.textContent);
     return {
-      id: cells[0],
-      make: cells[1],
-      model: cells[2],
-      year: cells[3],
-      chassis: cells[4],
-      purchase: cells[5],
-      expense: cells[6],
-      soldPrice: cells[7],
-      profit: cells[8],
-      status: cells[9]
+      id: cells[0], make: cells[1], model: cells[2], year: cells[3], chassis: cells[4], purchase: cells[5], expense: cells[6], sold: cells[7], soldDate: cells[8], status: cells[9]
     };
   });
   const toPrint = selected ? selected : visibleRows;
@@ -783,11 +732,10 @@ function printReport(){
   const wrapper = document.createElement("div");
   wrapper.innerHTML = template;
   const bodyNode = wrapper.querySelector("#printBody");
-  if(!bodyNode) return alert("Print error.");
+  if(!bodyNode) { alert("Print error."); return; }
 
-  let rowsHtml = '<table style="width:100%;border-collapse:collapse;margin-top:8px"><thead><tr style="background:#eee"><th style="padding:8px;border:1px solid #ccc">ID</th><th style="padding:8px;border:1px solid #ccc">Make</th><th style="padding:8px;border:1px solid #ccc">Model</th><th style="padding:8px;border:1px solid #ccc">Year</th><th style="padding:8px;border:1px solid #ccc">Chassis</th><th style="padding:8px;border:1px solid #ccc">Purchase</th><th style="padding:8px;border:1px solid #ccc">Expense</th><th style="padding:8px;border:1px solid #ccc">Sold Price</th><th style="padding:8px;border:1px solid #ccc">Profit</th><th style="padding:8px;border:1px solid #ccc">Status</th></tr></thead><tbody>';
-
-  toPrint.forEach(r => {
+  let rowsHtml = '<table style="width:100%;border-collapse:collapse;margin-top:8px"><thead><tr style="background:#eee"><th style="padding:8px;border:1px solid #ccc">ID</th><th style="padding:8px;border:1px solid #ccc">Make</th><th style="padding:8px;border:1px solid #ccc">Model</th><th style="padding:8px;border:1px solid #ccc">Year</th><th style="padding:8px;border:1px solid #ccc">Chassis</th><th style="padding:8px;border:1px solid #ccc">Purchase</th><th style="padding:8px;border:1px solid #ccc">Expense</th><th style="padding:8px;border:1px solid #ccc">Sold</th><th style="padding:8px;border:1px solid #ccc">Sold Date</th><th style="padding:8px;border:1px solid #ccc">Status</th></tr></thead><tbody>';
+  toPrint.forEach(r=>{
     rowsHtml += `<tr>
       <td style="padding:6px;border:1px solid #ddd">${escapeHTML(r.id)}</td>
       <td style="padding:6px;border:1px solid #ddd">${escapeHTML(r.make)}</td>
@@ -796,19 +744,18 @@ function printReport(){
       <td style="padding:6px;border:1px solid #ddd">${escapeHTML(r.chassis)}</td>
       <td style="padding:6px;border:1px solid #ddd;text-align:right">${escapeHTML(String(r.purchase))}</td>
       <td style="padding:6px;border:1px solid #ddd;text-align:right">${escapeHTML(String(r.expense))}</td>
-      <td style="padding:6px;border:1px solid #ddd;text-align:right">${escapeHTML(String(r.soldPrice))}</td>
-      <td style="padding:6px;border:1px solid #ddd;text-align:right">${escapeHTML(String(r.profit))}</td>
+      <td style="padding:6px;border:1px solid #ddd;text-align:right">${escapeHTML(String(r.sold))}</td>
+      <td style="padding:6px;border:1px solid #ddd;text-align:center">${escapeHTML(String(r.soldDate))}</td>
       <td style="padding:6px;border:1px solid #ddd;text-align:center">${escapeHTML(r.status)}</td>
     </tr>`;
   });
-
   rowsHtml += '</tbody></table>';
   bodyNode.innerHTML = rowsHtml;
   wrapper.querySelector("#printDate").textContent = new Date().toLocaleString();
 
   const w = window.open("", "_blank", "width=900,height=700");
   w.document.write('<!doctype html><html><head><title>Report</title>');
-  w.document.write('<style>body{font-family:Arial, Helvetica, sans-serif;color:#111;margin:0;padding:18px}table{font-size:12px;border-collapse:collapse}thead th{font-weight:700}</style>');
+  w.document.write('<style>body{font-family:Arial, Helvetica, sans-serif;color:#111;margin:0;padding:18px}table{font-size:12px}thead th{font-weight:700}</style>');
   w.document.write('</head><body>');
   w.document.write(wrapper.innerHTML);
   w.document.write('</body></html>');
@@ -816,42 +763,51 @@ function printReport(){
   w.print();
 }
 
-/* initialize */
-function init(){
-  populateMakeSelect();
-  renderTable();
-  applyStatusVisibility();
-  // Ensure modelData persisted structure exists
-  if(!localStorage.getItem(MAKES_KEY)){
-    localStorage.setItem(MAKES_KEY, JSON.stringify(modelData));
-  }
+/* ===== Export CSV ===== */
+function exportCSV() {
+  let csv = "ID,Make,Model,Year,Chassis,Purchase,Expense,Sold,SoldDate,Status,Notes\n";
+  vehicles.forEach(v => {
+    const row = [
+      v.id, v.make, v.model, v.year, v.chassis,
+      v.purchase || "", v.expense || "", `"${String(v.sold || "")}"`, v.soldDate || "", v.status || "", `"${(v.notes||"").replace(/"/g,'""')}"`
+    ];
+    csv += row.join(",") + "\n";
+  });
+  const blob = new Blob([csv], {type: "text/csv"});
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = "vehicles.csv";
+  link.click();
 }
 
-/* expose for initial use after login */
-function login(){
-  doLogin();
+/* ===== Utilities ===== */
+function escapeHTML(s) { return String(s||"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;"); }
+
+/* ===== Init on load ===== */
+function renderEverything() {
+  populateMakeModelDropdowns();
+  renderTable(vehicles);
+  updateStats(vehicles);
 }
 
-/* quick helper when pressing logout from UI */
-function logout(){ doLogout(); }
-
-/* helper show/hide of sold related fields on page load */
+/* quick init for login visible */
 document.addEventListener("DOMContentLoaded", () => {
-  // Attach some events
-  document.getElementById("status").addEventListener("change", applyStatusVisibility);
-  // In case fields exist when running updateProfitField
-  if(document.getElementById("soldPrice")) document.getElementById("soldPrice").addEventListener("input", updateProfitField);
+  // show login screen
+  loginScreen.style.display = "block";
+  mainApp.style.display = "none";
+  // ensure lists exist
+  saveLists();
+  renderEverything();
 });
 
-/* if the user is logged in show app and initialize models */
-if(JSON.parse(localStorage.getItem(SESSION_KEY) || "null")){
-  init();
-}
+/* Optional: hook input changes to update profit display (small calc) */
+[purchasePriceInput, expenseInput, soldPriceInput].forEach(el=>{
+  el.addEventListener("input", () => {
+    // if sold contains "Free" skip numeric parse
+    updateProfitField();
+  });
+});
 
-/* Save data on unload */
-window.addEventListener("beforeunload", saveStorage);
-
-/* End of script */
 </script>
 </body>
 </html>
